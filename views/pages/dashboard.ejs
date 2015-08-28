@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+</head>
+<body class="container">
+    <% include ../partials/header %>
+    <main>
+        <div class="jumbotron">
+			<form method='post'>
+                <% include ../partials/csrf %>
+				<span>First Name: </span><input type='text' name='firstName' />
+				<span>Last Name: </spane><input type='text' name='lastName' />
+				<span>Email: </span><input type='email' name='email' />
+				<span>Password: </span><input type='password' name='password' />
+				<div><button type='submit'>Submit</button></div>
+			</form>
+        </div>
+    </main>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+    <% include ../partials/scripts %>
+    <script>
+    /*
+        var CSRF_HEADER = 'X-CSRF-Token';
+
+        var setCSRFToken = function(securityToken) {
+          jQuery.ajaxPrefilter(function(options, _, xhr) {
+            if ( !xhr.crossDomain ) 
+                xhr.setRequestHeader(CSRF_HEADER, securityToken);
+          });
+        };
+
+        setCSRFToken($('input[name="_csrf"]').val());
+        $.post('/dashboard', {firstname:'test', email: 'test@example.com'}).always(function() { debugger; });
+    */
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+/** Dashboard **/
+.tweet-search {
+  margin: 10px;
+}
+
+.tweet-search-text {
+  margin: 10px;
+}
+
+.tweet-search-weight {
+  text-align: center;
+}
+
+/** Footer **/
+footer.title {
+	font-size: 250%;
+}
+.heart {
+	color: red;
+}
