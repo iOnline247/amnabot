@@ -87,7 +87,6 @@ var server = app.listen(port, function() {
 });
 
 
-
 function init() {
   var dbDeets = require('./config/db');
   var users = dbDeets.users;
