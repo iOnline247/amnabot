@@ -4,7 +4,7 @@
   "description": "http://twitter.com/amnabot",
   "main": "index.js",
   "scripts": {
-    "start": "forever start --minUptime 20000 --spinSleepTime 20000 index.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
