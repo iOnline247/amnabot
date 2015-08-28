@@ -102,7 +102,7 @@ module.exports = {
 					{
 						// TODO:
 						// Add this to the global config for DEV/TEST/PROD.
-						oauth_callback: 'http://localhost:2015/dashboard'
+						oauth_callback: 'http://amnabot.azurewebsites.net/dashboard'
 					},
 					function (e, oauth_token, oauth_token_secret, results) {
 						if (e) {
