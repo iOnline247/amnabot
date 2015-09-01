@@ -161,7 +161,7 @@ function init() {
   // Bot Actions
   favoriteMentions(2 * 60 * 1000);
   autoFollow(15 * 60 * 1000);
-  retweetFromUsers(5 * 24 * 60 * 60 * 1000);
+  retweetFromUsers(12 * 60 * 60 * 1000);
   retweetFromSearch(15 * 60 * 1000);  
   // autoPrune(2 * 60 * 60 * 1000);
   makeFrienships(100 * 60 * 1000);
@@ -171,6 +171,10 @@ function init() {
       {
         text: 'That follow tho.',
         url: 'http://i.imgur.com/gMy40IP.png'
+      },
+      {
+        text: 'While you are sleeping, we\'ll be up tweeting.',
+        url: 'http://i.imgur.com/Zf9MwHY.jpg'
       },
       {
         text: 'Thinking you are just like me!',
@@ -307,11 +311,12 @@ function init() {
           }
 
           popularTweet = tweets.reduce(function(curr, next) {
-            var rnaughtyNaughty = /(#boobs?|#milf)\s/;
+            var rnaughtyNaughty = /(#boobs?|#milf|#naked|#porn|#idgaf)\s/;
             // Don't think a popular tweet will have 0 RTs, but
             // >= will push a *real* tweet into the variable.
             // Added English text only for retweets.
             var shouldRT = (next.retweet_count >= curr.retweet_count) && 
+              (!next.possibly_sensitive) &&
               (next.lang === 'en' || next.lang === 'en-gb') &&
               (!rnaughtyNaughty.test(next.text));
 

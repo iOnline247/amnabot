@@ -4,6 +4,7 @@
   "description": "http://twitter.com/amnabot",
   "main": "index.js",
   "scripts": {
+    "build": "npm install && npm shrinkwrap && nsp audit-shrinkwrap",
     "start": "node index.js"
   },
   "repository": {
@@ -23,7 +24,6 @@
     "csurf": "^1.8.3",
     "ejs": "^2.3.3",
     "express": "^4.13.3",
-    "forever": "^0.15.1",
     "mongodb": "^2.0.39",
     "mongoose": "^4.1.1",
     "oauth": "^0.9.13",
@@ -31,6 +31,7 @@
     "twit": "^2.1.0"
   },
   "devDependencies": {
-    "node-inspector": "^0.11.1"
+    "node-inspector": "^0.11.1",
+    "nsp": "^1.1.0"
   }
 }
