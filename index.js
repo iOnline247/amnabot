@@ -107,10 +107,6 @@ app.set('view engine', 'ejs');
  * Routes
 */
 app.use('/', require('./routes/routes'));
-// app.get('/login', require('./routes/login'));
-// app.get('/logout', require('./routes/logout'));
-// app.get('/dashboard', require('./routes/dashboard'));
-// app.get('*', require('./routes/404'));
 
 /*
 // API Routes
