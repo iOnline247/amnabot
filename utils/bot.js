@@ -97,24 +97,34 @@ Bot.prototype.prune = function (callback) {
   var self = this;
 
   this.twit.get('followers/ids', function(err, reply) {
-      if(err) return callback(err);
+    if (err) {
+      return callback(err);
+    }
 
-      var followers = reply.ids;
+    var followers = reply.ids;
 
-      self.twit.get('friends/ids', function(err, reply) {
-          if(err) return callback(err);
+    self.twit.get('friends/ids', function(err, reply) {
+      if (err) {
+        return callback(err);
+      }
 
-          var friends = reply.ids
-            , pruned = false;
+      var friends = reply.ids;
+      var iterations = 0;
 
-          while(!pruned) {
-            var target = randIndex(friends);
+      // TODO:
+      // Test if new code is valid.
+      // New code removes potential infinite loop.
+      while(iterations < 20) {
+        var target = randIndex(friends);
 
-            if(!~followers.indexOf(target)) {
-              pruned = true;
-              self.twit.post('friendships/destroy', { id: target }, callback);
-            }
-          }
-      });
+        if(followers.indexOf(target) < 0) {
+          self.twit.post('friendships/destroy', { id: target }, callback);
+
+          break;
+        }
+
+        iterations++;
+      }
+    });
   });
 };
