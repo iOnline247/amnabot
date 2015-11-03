@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-
 var environment = require('../utils/environment');
 var redirectUrls = require('../config/redirect');
 var appUrl = (environment === 'dev') ?
@@ -20,17 +19,20 @@ var twitter = new OAuth.OAuth(
 	'HMAC-SHA1'
 );
 
-function renderDashboard(req, res, user) {
-	console.log('Rendering the dashboard page');
-
+function renderDashboard(req, res) {
+	var user = req.deets.user;
 	var userName = user.screen_name;
-	return res.render('pages/dashboard', {
+
+	console.log('Rendering the dashboard page');
+	res.render('pages/dashboard', {
 		title: 'Hi, @'+ userName + '. Welcome to your dashboard',
-		csrfToken: req.csrfToken()
+		csrfToken: req.csrfToken(),
+		userName: userName,
+		loggedIn: true
 	});
 }
 
-function getAccessToken(req, res, request_token, User) {
+function getAccessToken(req, res, request_token, Users, next) {
 	console.log('Getting OAuth access token...');
 
 	var params = req.query;
@@ -43,7 +45,8 @@ function getAccessToken(req, res, request_token, User) {
 		oauth_verifier,
 		function(err, access_token, access_token_secret, results) {
 			if(err) {
-				return handleError(err, 'Invalid getOAuth token request');
+				// 'Invalid getOAuth token request'
+				return next(err);
 			}
 
 			var userTokens = {
@@ -53,66 +56,88 @@ function getAccessToken(req, res, request_token, User) {
 				screen_name: results.screen_name,
 				user_id: results.user_id
 			};
-			var ifExistsQuery = { 
+			var userExistsQuery = {
 				user_id: results.user_id
 			};
 
-			req.session.user = userTokens;
+			// Set cookie and locals for use in templates.
+			req.deets.user = req.user = res.locals.user = userTokens;
 
 			// Find user and update or save new.
 			// Will overwrite in case app is revoked or something changes.
-			User.findOne(ifExistsQuery, function(err, doc) {
+			Users.findOne(userExistsQuery, function(err, doc) {
 				if(err) {
-					return handleError(err);
+					next(err);
 				} else if(doc) {
-					User.update(ifExistsQuery, { $set: userTokens }).exec();
-					res.redirect('/dashboard');
+					Users.update(userExistsQuery, { $set: userTokens }).exec(next);
 				} else {
-					var user = new User(userTokens);
+					var user = new Users(userTokens);
 
-					user.save(function(err) {
-						// var unknownError = err && err.code !== 11000;
-						// 11000 user already exists.
-						if(err) {
-							// var error = 'Couldn\'t authenticate properly.';
-
-							// TODO:
-							// Handle displaying error in dashboard page.
-							res.render('pages/dashboard', {
-								title: err,
-								error: err,
-								csrfToken: req.csrfToken()
-							});
-						} else {
-							res.redirect('/dashboard');
-						}
-					});
+					user.save(next);
 				}
 			});
 		}
 	);
 }
 
+function reqTokenCheck(req, res, next) {
+	var request_token = req.deets.reqToken;
+	var user = req.deets.user;
+
+	if(user) {
+		next();
+	} else if(request_token) {
+		var db = req.db;
+		var Users = db.Users;
+		getAccessToken(req, res, request_token, Users, next);
+	} else {
+		res.redirect('/login');
+	}
+}
+
+function requireLogin(req, res, next) {
+	if (!req.deets.user) {
+		res.redirect('/login');
+	} else {
+		next();
+	}
+}
+
 // Routes
+/*
+router.use(function(req, res, next) {
+  if (req.session && req.session.user) {
+    Users.findOne({ user_id: req.session.user.user_id }, function(err, user) {
+      if (user) {
+        req.user = user;
+        req.session.user = user;
+        res.locals.user = user;
+      }
+
+      next();
+    });
+    } else {
+      next();
+  }
+})
+*/
 router.get('/', function(req, res) {
 	console.log('Rendering the home page');
-	res.render('pages/default', { title: 'Home' });
-});
-
-router.get('/login', function(req, res) {
+	res.render('pages/default', { 
+		title: 'Home',
+		userName: 'Home',
+		loggedIn: false 
+	});
+})
+.get('/login', function(req, res) {
 	console.log('Getting request token from Twitter...');
-	var user = req.session.user;
-	var authUrl = 'https://api.twitter.com/oauth/request_token';
+	var user = req.deets.user;
 
-	// TODO:
-	// Get this to work.
 	if(user) {
 		res.redirect('/dashboard');
 	} else {
 		twitter.getOAuthRequestToken(
 			{
-				// TODO:
-				// Add this to the global config for DEV/TEST/PROD.
 				oauth_callback: appUrl
 			},
 			function (err, oauth_token, oauth_token_secret, results) {
@@ -120,35 +145,17 @@ router.get('/login', function(req, res) {
 					return handleError(err);
 				}
 
-				req.reqToken.value = oauth_token_secret;
+				req.deets.reqToken = oauth_token_secret;
 				res.redirect('https://api.twitter.com/oauth/authorize?oauth_token=' + oauth_token);
 			}
 		);
 	}
-});
-
-router.get('/logout', function(req, res) {
-	req.session.destroy();
-	req.reqToken.destroy();
-
+})
+.get('/logout', function(req, res) {
+	req.deets.destroy();
 	res.redirect('/');
-});
+})
+.get('/dashboard', [reqTokenCheck, requireLogin], renderDashboard);
 
-router.get('/dashboard', function(req, res) {
-	var request_token = req.reqToken.value;
-	var db = req.db;
-	var Users = db.Users;
-	var user = req.session.user;
-
-	req.reqToken.reset();
-
-	if(user) {
-		renderDashboard(req, res, user);
-	} else if(request_token) {
-		getAccessToken(req, res, request_token, Users);
-	} else {
-		res.redirect('/login');
-	}
-});
 
 module.exports = router;

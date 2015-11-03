@@ -10,6 +10,17 @@
 .tweet-search-weight {
   text-align: center;
 }
+.glyphicon-pencil, .glyphicon-remove {
+	cursor: pointer;
+}
+.delete {
+	background-color: #FF4136;
+}
+
+/** Modals **/
+.modal .input-group {
+	margin-bottom: 10px;
+}
 
 /** Footer **/
 footer.title {

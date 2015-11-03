@@ -5,6 +5,7 @@ module.exports.init = function(mongoose) {
 		id: ObjectId,
 		access_token: String,
 		access_token_secret: String,
+		hashtags: [],
 		request_token: String,
 		screen_name: String,
 		user_id: { type: String, unique: true }
