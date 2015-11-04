@@ -24,11 +24,11 @@ function init(app) {
 			if(err) {
 				res.json('Invalid Request.');
 			} else {
-				res.json(userSecrets.hashtags);	
+				res.json(userSecrets.botActions);	
 			}
 		});
 	})
-	.get('/:id', function(req, res) {
+	.get('/activated', function(req, res) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
 		var id = req.params.id *1;
@@ -45,33 +45,7 @@ function init(app) {
 			}
 		});
 	})
-	.post('/', function(req, res) {
-		var Users = req.db.Users;
-		var twitterId = req.deets.user.user_id;
-		var hashtag = {
-			name: req.body.name,
-			frequency: req.body.frequency
-		};
-
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
-			}
-
-			userSecrets.hashtags.push(hashtag);
-			var idx = userSecrets.hashtags.length - 1;
-
-			userSecrets.save(function(err) {
-				if(err) {
-					res.json('Invalid Request.');
-				} else {
-					hashtag.idx = idx;
-					res.json(hashtag);
-				}
-			});
-		});
-	})
-	.put('/:id', function(req, res) {
+	.put('/activated', function(req, res) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
 		var id = req.params.id *1;
@@ -115,33 +89,6 @@ function init(app) {
 			} else {
 				res.json('Invalid Request.');
 			}
-		});
-	})
-	.delete('/:id', function(req, res) {
-		var Users = req.db.Users;
-		var twitterId = req.deets.user.user_id;
-		var id = req.params.id *1;
-
-		if(isNaN(id)) {
-			return res.json('Invalid Request.');
-		}
-
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
-			}
-
-			userSecrets.hashtags.splice(id, 1);
-			userSecrets.save(function(err) {
-				if(err) {
-					res.json('Invalid Request.');
-				} else {
-					res.json({
-						response: 'OK',
-						status: 200
-					});
-				}
-			});
 		});
 	});
 
