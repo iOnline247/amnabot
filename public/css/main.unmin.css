@@ -17,9 +17,8 @@
   text-align: center;
 }
 */
-
-.glyphicon-pencil, .glyphicon-remove {
-	cursor: pointer;
+.js-disabled {
+	'pointer-events': 'none';
 }
 .js-delete, .js-invalid {
 	background-color: #FF4136;
@@ -37,10 +36,28 @@
 .js-hidden {
 	display: none !important;
 }
+.js-off-screen {
+	position: relative;
+	left: -999em;
+}
 
 /** Forms **/
+.glyphicon-pencil, .glyphicon-remove {
+	cursor: pointer;
+}
+.glyphicon-remove:before {
+	color: #FF4136;
+}
+.info {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
 .controls {
 	margin-top: 30px;
+	margin-bottom: 10px;
+}
+.inline-block {
+	display: inline-block;
 }
 .form-bold {
 	font-size: 25px;
@@ -49,17 +66,19 @@
 
 /* https://proto.io/freebies/onoff/ */
 .onoffswitch {
-    position: relative; width: 90px;
+    position: relative; width: 115px;
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
-    /* custom */
-    margin-top: 10px;
 }
 .onoffswitch-checkbox {
     display: none;
 }
 .onoffswitch-label {
     display: block; overflow: hidden; cursor: pointer;
-    border: 2px solid #999999; border-radius: 20px;
+    border-radius: 20px;
+    /** custom **/
+    /*
+    border: 2px solid #999999;
+    */
 }
 .onoffswitch-inner {
     display: block; width: 200%; margin-left: -100%;
@@ -67,25 +86,25 @@
 }
 .onoffswitch-inner:before, .onoffswitch-inner:after {
     display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
-    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    font-size: 15px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
     box-sizing: border-box;
 }
 .onoffswitch-inner:before {
-    content: "ON";
-    padding-left: 10px;
+    content: "Activated";
+    padding-left: 11px;
     background-color: #5CB85C; color: #FFFFFF;
 }
 .onoffswitch-inner:after {
     content: "OFF";
-    padding-right: 10px;
+    padding-right: 11px;
     background-color: #FF4136; color: #FFFFFF;
     text-align: right;
 }
 .onoffswitch-switch {
-    display: block; width: 18px; margin: 6px;
+    display: block; width: 36px; margin: -2.5px;
     background: #FFFFFF;
     position: absolute; top: 0; bottom: 0;
-    right: 56px;
+    right: 81px;
     border: 2px solid #999999; border-radius: 20px;
     transition: all 0.3s ease-in 0s; 
 }

@@ -2,7 +2,7 @@
 	function setCSRFToken(securityToken) {
 		jQuery.ajaxPrefilter(function(options, _, xhr) {
 			if ( !xhr.crossDomain ) {
-				xhr.setRequestHeader('X-CSRF-Token', securityToken);	
+				xhr.setRequestHeader('X-CSRF-Token', securityToken);
 			}
 		});
 	}
@@ -22,7 +22,7 @@
 		});
 
 		if(hashtags.length) {
-			$('.hashtags').find('tbody').html(hashtags);
+			$('.hashtags').find('tbody').html(hashtags.join(''));
 		}
 	}).fail(function() {
 		debugger;
@@ -43,8 +43,8 @@
 	$.ajax({
 		url: '/hashtags/4',
 		type: 'PUT',
-		data: { 
-			name: 'test' 
+		data: {
+			name: 'test'
 		}
 	});
 
@@ -64,21 +64,50 @@
 		return '<tr>' +
 					'<td>' +
 						'<button type="button" class="hidden" data-toggle="modal"' +
-						' data-target="#hashtag-modal" data-idx="' + hashtag.idx + '" ' + 
-						'data-name="' + hashtag.name + '" data-frequency="' + frequency + 
+						' data-target="#hashtag-modal" data-idx="' + hashtag.idx + '" ' +
+						'data-name="' + hashtag.name + '" data-frequency="' + frequency +
 						'" data-form-title="Edit Search Term">Edit Hashtag</button>' +
 						'<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;&nbsp;' +
 						'&nbsp;&nbsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>' +
-					'<td>' + 
+					'<td>' +
 						'<a href="https://twitter.com/search?q=' + encodeURIComponent(hashtag.name) +
 						'" target="_blank">' + hashtag.name + '</a>' +
 					'</td>' +
 					'<td>' +
 						'<span>' + frequency + '%</span>' +
 					'</td>' +
-				'</tr>';	
+				'</tr>';
 	}
 
+	function memesTemplate(meme, addRow) {
+		var html = '<div class="col-sm-6 col-md-4">' +
+					'<div class="thumbnail">' +
+						'<img src="' + meme.url + '" alt="' + meme.text + '">' +
+						'<div class="caption">' +
+							'<h3>Thumbnail label</h3>' +
+							'<p>...</p>' +
+							'<p>' +
+								'<a href="#" class="btn btn-primary" role="button">Button</a>' +
+								'<a href="#" class="btn btn-default" role="button">Button</a>' +
+							'</p>' +
+						'</div>' +
+					'</div>' +
+				'</div>';
+
+		function newRow(html) {
+			return '<div class="row">' + html + '</div>';
+		}
+
+		if(addRow.toLowerCase() === 'addrow') {
+			html = newRow(html);
+		}
+
+		return html;
+	}
+
+	function notificationHtml() {
+		return '<div class="alert alert-success"><strong>Delete successful!</strong> <button class="js-undo">Click to undo.</button></div>';
+	}
 	// Events
 	// Validation of forms.
 	$('.modal').on('input propertychange', '.js-invalid', function(event) {
@@ -92,23 +121,39 @@
 
 	$('.hashtags').on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
 		var isEdit = this.classList.contains('glyphicon-pencil');
-		var $this = $(this).siblings('button');
+		var $this = $(this);
+		var $button = $this.siblings('button');
 		var $tr = $this.closest('tr');
-		var id = $this.data('idx');
+		var data = $this.data();
+		var id = data.idx;
 
 		if(isEdit) {
-			$this.click();
-		} else {					
+			$button.click();
+		} else {
+			$this.addClass('js-disabled');
+
+			var $div = $(notificationHtml()).addClass('js-off-screen');
+			var timer;
+
+			$('footer').prepend($div);
+			$div.animate({left: 0}, 200, function() {
+				timer = setTimeout(function() {
+					console.warn('deletion');
+				}, 2000);
+			});
+			$tr.fadeOut(600);
 			// TODO:
-			// Add Undo notification, then fire AJAX if 
+			// Add Undo notification, then fire AJAX if
 			// the touch/click was valid.
+/*
 			$.ajax({
 				url: '/hashtags/' + id,
 				type: 'DELETE'
 			}).then(function(data) {
 				console.dir(data);
-				$tr.fadeOut(1000);
+
 			});
+*/
 		}
 	});
 
@@ -126,7 +171,7 @@
 
 		// If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
 		// Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-		
+
 		$modal.find('.modal-title').text(data.formTitle);
 		$hashtag.val(data.name);
 		$frequency.val(data.frequency);
@@ -137,10 +182,12 @@
 			var frequencyVal = $frequency.val();
 			var idxVal = $idx.val();
 			var data = {
-				name: hashtagVal, 
+				name: hashtagVal,
 				frequency: frequencyVal / 100
 			};
 			var dfd;
+
+			$submit.button('loading');
 
 			if(hashtagVal === '#' || hashtagVal === '') {
 				$hashtag.addClass('js-invalid');
@@ -153,6 +200,7 @@
 			}
 
 			if(invalid) {
+				$submit.button('reset');
 				return;
 			}
 

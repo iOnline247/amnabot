@@ -22,6 +22,12 @@ var twitter = new OAuth.OAuth(
 function renderDashboard(req, res) {
 	var user = req.deets.user;
 	var userName = user.screen_name;
+	var reqToken = req.deets.reqToken;
+
+	if(reqToken) {
+		req.deets.reqToken = null;
+		return res.redirect('/dashboard');
+	}
 
 	console.log('Rendering the dashboard page');
 	res.render('pages/dashboard', {
