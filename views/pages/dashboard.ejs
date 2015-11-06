@@ -8,105 +8,49 @@
     <% include ../partials/header %>
     <main>
         <div class="jumbotron">
-          <!-- App tabs -->
-          <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation" class="active">
-                <a href="#search-terms" aria-controls="search-terms" role="tab" data-toggle="tab">Search Terms</a>
-            </li>
-            <li role="presentation">
-                <a href="#memes" aria-controls="memes" role="tab" data-toggle="tab">Memes</a>
-            </li>
-            <li role="presentation">
-                <a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">RT Users</a>
-            </li>
-          </ul>
+            <!-- App tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active">
+                    <a href="#search-terms" aria-controls="search-terms" role="tab" data-toggle="tab">Search Terms</a>
+                </li>
+                <li role="presentation">
+                    <a href="#memes" aria-controls="memes" role="tab" data-toggle="tab">Memes</a>
+                </li>
+                <li role="presentation">
+                    <a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">RT Users</a>
+                </li>
+            </ul>
 
-          <!-- Tab panes -->
-          <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="search-terms">
-                <div class="info">
-                    <p>Retweet top tweets based on the search term and frequencies.</p>
-                    <div class="onoffswitch">
-                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" checked>
-                        <label class="onoffswitch-label" for="myonoffswitch">
-                            <span class="onoffswitch-inner"></span>
-                            <span class="onoffswitch-switch"></span>
-                        </label>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <% include ../partials/hashtag %>
+                <div role="tabpanel" class="tab-pane" id="memes">
+                    <div class="info">
+                        <p>Add memes for when a new person follows you.</p>
+                    </div>
+                    <div class="controls">
+                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#meme-modal" data-form-title='Add Meme' data-name="#">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                            Add Meme
+                        </button>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover table-bordered hashtags">
-                        <thead>
-                            <th></th>
-                            <th>Hashtag</th>
-                            <th>Frequency</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td></td>
-                                <td colspan="2">There are no hashtags for this user</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="controls">
-                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#hashtag-modal" data-form-title='Add Search Term' data-name="#">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                        Add Search Term
-                    </button>
+                <div role="tabpanel" class="tab-pane" id="messages">
+                    <div class="info">
+                        <p>Retweet top tweets based on the search term and frequencies.</p>
+                    </div>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="memes">
-                <div class="info">
-                    <p>Add memes for when a new person follows you.</p>
-                </div>
-                <div class="controls">
-                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#meme-modal" data-form-title='Add Meme' data-name="#">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                        Add Meme
-                    </button>
-                </div>
-            </div>
-            <div role="tabpanel" class="tab-pane" id="messages">
-                <div class="info">
-                    <p>Retweet top tweets based on the search term and frequencies.</p>
-                </div>
-            </div>
-          </div>
         </div>
     </main>
 
     <footer>
         <% include ../partials/footer %>
     </footer>
-    <!-- Modal -->
-    <div class="modal fade" id="hashtag-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="myModalLabel"></h4>
-          </div>
-          <div class="modal-body">
-            <div class="input-group">
-              <span class="input-group-addon form-bold" id="basic-addon1">#</span>
-              <input type="text" class="form-control input-lg" placeholder="Search Term" aria-describedby="basic-addon1">
-            </div>
-            <div class="input-group">
-                <span class="input-group-addon" id="basic-addon2"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span></span>
-                <input type="number" min="5" max="100" step="5" class="form-control input-lg" placeholder="Frequency" aria-describedby="basic-addon2">
-            </div>
-            <div class="input-group">
-                <input type="number" class="form-control input-lg js-index js-hidden">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-loading-text="Saving...">Save changes</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Modals -->
+    <% include ../partials/hashtag-modal %>
+
+    <!-- Scripts -->
     <% include ../partials/scripts %>
     <script src='/js/main.unmin.js'></script>
 </body>

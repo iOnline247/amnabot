@@ -1,26 +1,22 @@
 <header>
 	<nav class="navbar navbar-default">
-	  <div class="container-fluid">
-	    <!-- Brand and toggle get grouped for better mobile display -->
-	    <div class="navbar-header">
-	      <ul class="nav navbar-nav">
-			<% if (userName === 'Home') { %>
+        <div class="notification-bar pull-right">
+        </div>
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<ul class="nav navbar-nav">
+				<% if (userName === 'Home') { %>
 				<li><a class="navbar-brand" href="/">Home</a></li>
-			<% } else { %>
+				<% } else { %>
 				<li><a class="navbar-brand" href="/"><%= userName %>!</a></li>
-			<% } %>
-			<% if (loggedIn) { %>
+				<% } %>
+				<% if (loggedIn) { %>
 				<li><a href="/logout">Logout</a></li>
-			<% } else { %>
+				<% } else { %>
 				<li><a href="/login">Login</a></li>
-			<% } %>
-	      </ul>
-	    </div>
-
-	    <!-- Collect the nav links, forms, and other content for toggling -->
-	    <div class="collapse navbar-collapse" id="navbar-collapse">
-
-	    </div><!-- /.navbar-collapse -->
-	  </div><!-- /.container-fluid -->
+				<% } %>
+				</ul>
+			</div>
+		</div><!-- /.container-fluid -->
 	</nav>
 </header>

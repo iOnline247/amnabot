@@ -16,8 +16,7 @@
 
 	$.when.apply($, apiCalls)
 	.then(function(hashtags, rtUsers) {
-		hashtags = hashtags.map(function(hashtag, idx) {
-			hashtag.idx = idx;
+		hashtags = hashtags.map(function(hashtag) {
 			return hashtagTemplate(hashtag);
 		});
 
@@ -106,8 +105,14 @@
 	}
 
 	function notificationHtml() {
-		return '<div class="alert alert-success"><strong>Delete successful!</strong> <button class="js-undo">Click to undo.</button></div>';
+		return 	'<div class="js-notification">' +
+					'<div class="alert alert-success">' +
+						'<strong>Delete successful!</strong> ' +
+						'<button class="js-undo">Click to undo.</button>' +
+					'</div>' +
+				'</div>';
 	}
+
 	// Events
 	// Validation of forms.
 	$('.modal').on('input propertychange', '.js-invalid', function(event) {
@@ -119,12 +124,32 @@
 		}
 	});
 
+	// Undo deletion
+	$('.notification-bar').on('click', '.js-undo', function(event) {
+		var $this = $(this);
+		var data = $this.data();
+
+		clearTimeout(data.timer);
+
+		// Remove js-disabled and
+		// Fade in removed <tr>.
+		$('.hashtags').find('button[data-idx="' + data.idx + '"]')
+			.siblings('.glyphicon-remove').removeClass('js-disabled')
+			.closest('tr').fadeIn(600);
+
+		// Remove Notification.
+		$this.closest('.js-notification').animate({ opacity: 0 }, 300, function() {
+			$(this).remove();
+		});
+	});
+
+	// Edit/Delete Hashtags buttons.
 	$('.hashtags').on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
 		var isEdit = this.classList.contains('glyphicon-pencil');
 		var $this = $(this);
 		var $button = $this.siblings('button');
 		var $tr = $this.closest('tr');
-		var data = $this.data();
+		var data = $button.data();
 		var id = data.idx;
 
 		if(isEdit) {
@@ -132,34 +157,46 @@
 		} else {
 			$this.addClass('js-disabled');
 
-			var $div = $(notificationHtml()).addClass('js-off-screen');
+			var $notification = $(notificationHtml()).addClass('js-off-screen');
 			var timer;
 
-			$('footer').prepend($div);
-			$div.animate({left: 0}, 200, function() {
-				timer = setTimeout(function() {
-					console.warn('deletion');
-				}, 2000);
-			});
-			$tr.fadeOut(600);
-			// TODO:
-			// Add Undo notification, then fire AJAX if
-			// the touch/click was valid.
-/*
-			$.ajax({
-				url: '/hashtags/' + id,
-				type: 'DELETE'
-			}).then(function(data) {
-				console.dir(data);
+			$('.notification-bar').prepend($notification);
+			$notification.animate({ right: 0 }, 200, function() {
+				var $notificationButton = $notification.find('button');
 
+				timer = setTimeout(function() {
+					$notificationButton.addClass('js-disabled');
+					$notification.remove();
+
+					$.ajax({
+						url: '/hashtags/' + id,
+						type: 'DELETE'
+					}).then(function(data) {
+						console.dir(data);
+						$notification.animate({ opacity: 0 }, 300, function() {
+							$notification.remove();
+						});
+						$tr.remove();
+					});
+
+					// TODO:
+					// Implement failure logic.
+				}, 2500);
+
+				$notificationButton.data({
+					'timer': timer,
+					'idx': id
+				});
 			});
-*/
+
+			$tr.fadeOut(600);
 		}
 	});
 
 	var $hashtagModal = $('#hashtag-modal');
-	var $rtToggle = $('#rt-tweets-toggle');
+	var $rtToggle = $('#search-terms-toggle');
 
+	// Hashtag New/Edit modal.
 	$hashtagModal.on('show.bs.modal', function (event) {
 		var $button = $(event.relatedTarget); // Button that triggered the modal
 		var $modal = $(this);
@@ -218,7 +255,7 @@
 
 			dfd.then(function(hashtag) {
 				var $hashtags = $('.hashtags');
-				var $existingSearchTerm = $hashtags.find('button[data-idx="' + hashtag.idx + '"]');
+				var $existingSearchTerm = $hashtags.find('.js-no-data, button[data-idx="' + hashtag.idx + '"]');
 				var html = hashtagTemplate(hashtag)
 
 				if($existingSearchTerm.length) {
@@ -229,16 +266,20 @@
 
 				$hashtags.find('button[data-idx="' + hashtag.idx + '"]')
 					.closest('tr')
-					.css({ opacity: 0.0 })
-					.animate({ opacity: 1.0 }, 2000);
+					.css({ opacity: 0 })
+					.animate({ opacity: 1 }, 1500);
 			}).fail(function(response) {
+				// TODO:
+				// Display fail message.
+				// Recover gracefully.
 				response.status;
 				response.statusText;
 				response.responseText;
+				console.error('Hashtag - New/Edit failed');
 				console.dir(arguments);
-				debugger;
 			}).always(function() {
 				$modal.modal('hide');
+				
 				$submit.off(event);
 
 				$button = null;
@@ -256,7 +297,9 @@
 	});
 	$hashtagModal.on('hidden.bs.modal', function() {
 		var $modal = $(this);
+		var $submit = $modal.find('.btn-primary');
 
 		$modal.find('.js-invalid').removeClass('js-invalid');
+		$submit.button('reset');
 	});
 }(jQuery));
