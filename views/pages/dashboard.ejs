@@ -23,23 +23,9 @@
 
             <!-- Tab panes -->
             <div class="tab-content">
-                <% include ../partials/hashtag %>
-                <div role="tabpanel" class="tab-pane" id="memes">
-                    <div class="info">
-                        <p>Add memes for when a new person follows you.</p>
-                    </div>
-                    <div class="controls">
-                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#meme-modal" data-form-title='Add Meme' data-name="#">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                            Add Meme
-                        </button>
-                    </div>
-                </div>
-                <div role="tabpanel" class="tab-pane" id="messages">
-                    <div class="info">
-                        <p>Retweet top tweets based on the search term and frequencies.</p>
-                    </div>
-                </div>
+                <% include ../partials/search-terms %>
+                <% include ../partials/memes %>
+                <% include ../partials/rt-users %>
             </div>
         </div>
     </main>
@@ -48,7 +34,7 @@
         <% include ../partials/footer %>
     </footer>
     <!-- Modals -->
-    <% include ../partials/hashtag-modal %>
+    <% include ../partials/search-terms-modal %>
 
     <!-- Scripts -->
     <% include ../partials/scripts %>
