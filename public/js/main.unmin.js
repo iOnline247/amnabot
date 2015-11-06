@@ -9,19 +9,32 @@
 
 	setCSRFToken($('input[name="_csrf"]').val());
 
-	var routes = ['/hashtags'];
+	var routes = ['/hashtags', '/botactions'];
 	var apiCalls = routes.map(function(route) {
 		return $.getJSON(route);
 	});
 
+	// $els
+	var $hashtags = $('.hashtags');
+	var $hashtagModal = $('#hashtag-modal');
+	var $activeToggles = $('.active-toggle');
+	// var $searchTermsToggle = $('#search-terms-toggle');
+
 	$.when.apply($, apiCalls)
-	.then(function(hashtags, rtUsers) {
-		hashtags = hashtags.map(function(hashtag) {
+	.then(function(hashtags, botActions) {
+		hashtags = hashtags[0].map(function(hashtag) {
 			return hashtagTemplate(hashtag);
+		});
+		botActions = botActions[0];
+		Object.keys(botActions).forEach(function(prop) {
+			$('#' + prop + '-toggle')
+				.prop('checked', botActions[prop].activated)
+				.parent('.onoffswitch')
+				.removeClass('js-hidden');
 		});
 
 		if(hashtags.length) {
-			$('.hashtags').find('tbody').html(hashtags.join(''));
+			$hashtags.find('tbody').html(hashtags.join(''));
 		}
 	}).fail(function() {
 		debugger;
@@ -124,6 +137,19 @@
 		}
 	});
 
+	// Toggle bot actions
+	$activeToggles.on('change', function(event) {
+		var botAction = this.id.slice(0, this.id.lastIndexOf('-toggle'));
+
+		$.ajax({
+			url: '/botactions/' + botAction,
+			type: 'PUT',
+			data: {
+				active: this.checked
+			}
+		});
+	});
+
 	// Undo deletion
 	$('.notification-bar').on('click', '.js-undo', function(event) {
 		var $this = $(this);
@@ -131,9 +157,11 @@
 
 		clearTimeout(data.timer);
 
+		// TODO: 
+		// Make this work for each tab.
 		// Remove js-disabled and
 		// Fade in removed <tr>.
-		$('.hashtags').find('button[data-idx="' + data.idx + '"]')
+		$hashtags.find('button[data-idx="' + data.idx + '"]')
 			.siblings('.glyphicon-remove').removeClass('js-disabled')
 			.closest('tr').fadeIn(600);
 
@@ -144,7 +172,7 @@
 	});
 
 	// Edit/Delete Hashtags buttons.
-	$('.hashtags').on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
+	$hashtags.on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
 		var isEdit = this.classList.contains('glyphicon-pencil');
 		var $this = $(this);
 		var $button = $this.siblings('button');
@@ -172,15 +200,15 @@
 						url: '/hashtags/' + id,
 						type: 'DELETE'
 					}).then(function(data) {
-						console.dir(data);
+						$tr.remove();
+						// console.dir(data);
 						$notification.animate({ opacity: 0 }, 300, function() {
 							$notification.remove();
 						});
-						$tr.remove();
 					});
 
 					// TODO:
-					// Implement failure logic.
+					// Implement #fail logic.
 				}, 2500);
 
 				$notificationButton.data({
@@ -192,9 +220,6 @@
 			$tr.fadeOut(600);
 		}
 	});
-
-	var $hashtagModal = $('#hashtag-modal');
-	var $rtToggle = $('#search-terms-toggle');
 
 	// Hashtag New/Edit modal.
 	$hashtagModal.on('show.bs.modal', function (event) {
@@ -254,7 +279,6 @@
 			}
 
 			dfd.then(function(hashtag) {
-				var $hashtags = $('.hashtags');
 				var $existingSearchTerm = $hashtags.find('.js-no-data, button[data-idx="' + hashtag.idx + '"]');
 				var html = hashtagTemplate(hashtag)
 

@@ -98,6 +98,7 @@ app.use(bodyParser.json())
 app.use('/', require('./routes/routes'));
 // API Routes
 app.use('/hashtags', require('./routes/hashtags').init(app));
+app.use('/botactions', require('./routes/botactions').init(app));
 
 var server = app.listen(port, function() {
   log('Listening on port:', port);

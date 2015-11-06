@@ -5,6 +5,17 @@ module.exports.init = function(mongoose) {
 		id: ObjectId,
 		access_token: String,
 		access_token_secret: String,
+		botActions: {
+			"search-terms": {
+				activated: { type: Boolean, default: true }
+			},
+			memes: {
+				activated: { type: Boolean, default: true }
+			},
+			"rt-users": {
+				activated: { type: Boolean, default: true }
+			}
+		},
 		hashtags: [],
 		request_token: String,
 		screen_name: String,

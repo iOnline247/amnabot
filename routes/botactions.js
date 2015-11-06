@@ -28,64 +28,46 @@ function init(app) {
 			}
 		});
 	})
-	.get('/activated', function(req, res) {
+	.put('/:botAction', function(req, res) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
-		var id = req.params.id *1;
+		var query = { user_id: twitterId };
+		var botAction = req.params.botAction;
+		var active = !!JSON.parse(req.body.active);
 
-		if(isNaN(id)) {
-			return res.json('Invalid Request.');
-		}
-
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
-			} else {
-				res.json(userSecrets.hashtags[id]);
-			}
-		});
-	})
-	.put('/activated', function(req, res) {
-		var Users = req.db.Users;
-		var twitterId = req.deets.user.user_id;
-		var id = req.params.id *1;
-		var update = {
-			name: req.body.name,
-			frequency: req.body.frequency
-		};
-
-		// Removes any undefined keys.
-		// Prevents the .extend smashing over
-		// real values upon saving.
-		Object.keys(update).forEach(function(key) {
-			if(update[key] == null) {
-				delete update[key];
-			}
-		});
-
-		if(isNaN(id)) {
-			return res.json('Invalid Request.');
-		}
-
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
+		Users.findOne(query).exec(function(err, userSecrets) {
 			if(err) {
 				return res.json('Invalid Request.');
 			}
 
-			var hashtag = userSecrets.hashtags[id];
+			var subDoc = userSecrets.botActions[botAction];
 
-			if(hashtag) {
-				userSecrets.hashtags[id] = extend(hashtag, update);
-				// http://mongoosejs.com/docs/api.html#document_Document-markModified
-				userSecrets.markModified('hashtags');
+			if(subDoc) {
+				var update = {};
+				update['botActions.' + botAction + '.activated'] = active;
+
+				Users.update(query, update, function(err) {
+					if(err) {
+						res.json('Invalid Request.');
+					} else {
+						res.json({
+							response: 'OK',
+							status: 200
+						});
+					}
+				});
+		/*
 				userSecrets.save(function(err) {
 					if(err) {
 						res.json('Invalid Request.');
 					} else {
-						hashtag.idx = id;
-						res.json(hashtag);
+						res.json({
+							response: 'OK',
+							status: 200
+						});
 					}
-				});				
+				});
+		*/			
 			} else {
 				res.json('Invalid Request.');
 			}
