@@ -1,6 +1,6 @@
 var handleError = require('../utils/logError');
 var express = require('express');
-var extend = require('../utils/extend');
+var extend = require('extend');
 
 function init(app) {
 	var router = express.Router();

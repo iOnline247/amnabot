@@ -1,9 +1,19 @@
 <div role="tabpanel" class="tab-pane" id="memes">
     <div class="info">
         <p>Add memes for when a new person follows you.</p>
+        <div class="onoffswitch js-hidden">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox active-toggle" id="memes-toggle" checked>
+            <label class="onoffswitch-label" for="memes-toggle">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
+        </div>
+    </div>
+    <div class="memes">
+
     </div>
     <div class="controls">
-        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#meme-modal" data-form-title='Add Meme' data-name="#">
+        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#memes-modal" data-form-title='Add Meme'>
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
             Add Meme
         </button>

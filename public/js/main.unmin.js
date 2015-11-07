@@ -9,22 +9,43 @@
 
 	setCSRFToken($('input[name="_csrf"]').val());
 
-	var routes = ['/hashtags', '/botactions'];
+	var routes = ['/hashtags', '/memes', '/botactions'];
 	var apiCalls = routes.map(function(route) {
 		return $.getJSON(route);
 	});
 
+	// RegExps
+	var risBlank = /^\s$|^$/;
+	// starts with # followed by a letter. Optional numbers/letters thereafter.
+	var risValidHashtag = /^#[a-z]{1}(?:[a-z0-9]{1,})?$/i
 	// $els
 	var $hashtags = $('.hashtags');
+	var $memes = $('.memes');
 	var $hashtagModal = $('#hashtag-modal');
 	var $activeToggles = $('.active-toggle');
-	// var $searchTermsToggle = $('#search-terms-toggle');
 
+	// Fire when ready!
 	$.when.apply($, apiCalls)
-	.then(function(hashtags, botActions) {
+	.then(function(hashtags, memes, botActions) {
 		hashtags = hashtags[0].map(function(hashtag) {
 			return hashtagTemplate(hashtag);
 		});
+		memes = memes[0].map(function(meme) {
+			var url = meme.url;
+			var fileExtension = url.slice(url.lastIndexOf('.'))
+
+			// Slicing and dicing for mobile...
+			// Don't make me implement a <picture> solution!
+			url = url.replace(fileExtension, 'b' + fileExtension);
+			var meme = {
+				text: meme.text,
+				url: url
+			};
+
+			return memeTemplate(meme);
+		});
+
+		// Toggles.
 		botActions = botActions[0];
 		Object.keys(botActions).forEach(function(prop) {
 			$('#' + prop + '-toggle')
@@ -33,16 +54,18 @@
 				.removeClass('js-hidden');
 		});
 
+		// Update DOM!
 		if(hashtags.length) {
 			$hashtags.find('tbody').html(hashtags.join(''));
+		}
+
+		if(memes.length) {
+			$memes.html(memes.join(''));
 		}
 	}).fail(function() {
 		debugger;
 		console.dir(arguments);
 	});
-
-
-// $('.onoffswitch').css({ opacity: 0.0 }).removeClass('hidden').animate({ opacity: 1.0 }, 2000);
 
 /*
 	// CREATE
@@ -67,9 +90,8 @@
 	    success: $.noop,
 	    error: $.noop
 	});
-
-
 */
+
 	// Templates
 	function hashtagTemplate(hashtag) {
 		var frequency = hashtag.frequency * 100;
@@ -91,16 +113,15 @@
 				'</tr>';
 	}
 
-	function memesTemplate(meme, addRow) {
+	function memeTemplate(meme, addRow) {
 		var html = '<div class="col-sm-6 col-md-4">' +
 					'<div class="thumbnail">' +
-						'<img src="' + meme.url + '" alt="' + meme.text + '">' +
+						'<img src="' + meme.url + '" alt="' + meme.text + '" class="img-circle">' +
 						'<div class="caption">' +
-							'<h3>Thumbnail label</h3>' +
-							'<p>...</p>' +
+							'<h3>' + meme.text + '</h3>' +
 							'<p>' +
-								'<a href="#" class="btn btn-primary" role="button">Button</a>' +
-								'<a href="#" class="btn btn-default" role="button">Button</a>' +
+								'<a href="#" class="btn btn-link" role="button">Delete</a>' +
+								'<a href="#" class="btn btn-primary" role="button">Edit</a>' +
 							'</p>' +
 						'</div>' +
 					'</div>' +
@@ -110,7 +131,7 @@
 			return '<div class="row">' + html + '</div>';
 		}
 
-		if(addRow.toLowerCase() === 'addrow') {
+		if(/addrow/i.test(addRow)) {
 			html = newRow(html);
 		}
 
@@ -118,6 +139,9 @@
 	}
 
 	function notificationHtml() {
+		// TODO:
+		// Make text dynamic.
+		// Maybe pass in timer ID for encapsulation?
 		return 	'<div class="js-notification">' +
 					'<div class="alert alert-success">' +
 						'<strong>Delete successful!</strong> ' +
@@ -127,17 +151,36 @@
 	}
 
 	// Events
-	// Validation of forms.
-	$('.modal').on('input propertychange', '.js-invalid', function(event) {
+	// Validation of form inputs.
+	$('.modal').on('input propertychange', 'input:not([placeholder="Search Term"]), textarea', function(event) {
 		var $this = $(this);
 		var value = $this.val();
+		var invalid = risBlank.test(value);
 
-		if(value !== '#' || value !== '') {
-			$this.removeClass('js-invalid');
-		}
+		$this.toggleClass('js-valid', !invalid);
+		$this.toggleClass('js-invalid', invalid);
 	});
 
-	// Toggle bot actions
+	$('.modal').on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
+		var $this = $(this);
+		var value = $this.val();
+		var valid = /(?:https?:)\/\/i\.imgur\.com\/[a-z0-9]{1,}/i.test(value);
+
+		$this.toggleClass('js-valid', valid);
+		$this.toggleClass('js-invalid', !valid);
+	});
+
+	// Validate search term input
+	$('.modal').on('input propertychange', 'input[placeholder="Search Term"]', function(event) {
+		var $this = $(this);
+		var value = $this.val();
+		var invalid = risBlank.test(value) || !risValidHashtag.test(value);
+
+		$this.toggleClass('js-valid', !invalid);
+		$this.toggleClass('js-invalid', invalid);
+	});
+
+	// Toggle bot actions.
 	$activeToggles.on('change', function(event) {
 		var botAction = this.id.slice(0, this.id.lastIndexOf('-toggle'));
 
@@ -157,7 +200,7 @@
 
 		clearTimeout(data.timer);
 
-		// TODO: 
+		// TODO:
 		// Make this work for each tab.
 		// Remove js-disabled and
 		// Fade in removed <tr>.
@@ -221,7 +264,7 @@
 		}
 	});
 
-	// Hashtag New/Edit modal.
+	// Search Term New/Edit modal.
 	$hashtagModal.on('show.bs.modal', function (event) {
 		var $button = $(event.relatedTarget); // Button that triggered the modal
 		var $modal = $(this);
@@ -234,10 +277,10 @@
 		// If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
 		// Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
 
-		$modal.find('.modal-title').text(data.formTitle);
 		$hashtag.val(data.name);
 		$frequency.val(data.frequency);
 		$idx.val(data.idx);
+
 		$submit.on('click', function(event) {
 			var invalid = false;
 			var hashtagVal = $hashtag.val();
@@ -251,7 +294,7 @@
 
 			$submit.button('loading');
 
-			if(hashtagVal === '#' || hashtagVal === '') {
+			if(risBlank.test(hashtagVal) || !risValidHashtag.test(hashtagVal)) {
 				$hashtag.addClass('js-invalid');
 				invalid = true;
 			}
@@ -303,7 +346,7 @@
 				console.dir(arguments);
 			}).always(function() {
 				$modal.modal('hide');
-				
+
 				$submit.off(event);
 
 				$button = null;
@@ -315,15 +358,27 @@
 		});
 	});
 
-	$hashtagModal.on('shown.bs.modal', function() {
-		// Adds focus to hashtag input.
-		$('#basic-addon1').next().focus();
+	// TODO:
+	// Store $('.modal') globally within this function.
+	$('.modal').on('show.bs.modal', function(event) {
+		var $modal = $(this);
+		var $button = $(event.relatedTarget);
+		var data = $button.data();
+
+		$modal.find('.modal-title').text(data.formTitle);
 	});
-	$hashtagModal.on('hidden.bs.modal', function() {
+
+	$('.modal').on('shown.bs.modal', function() {
+		var $modal = $(this);
+		$modal.find('input, textarea').first().focus();
+	});
+
+	$('.modal').on('hidden.bs.modal', function() {
 		var $modal = $(this);
 		var $submit = $modal.find('.btn-primary');
 
-		$modal.find('.js-invalid').removeClass('js-invalid');
+		$modal.find('.js-invalid').removeClass('js-invalid').val('');
+		$modal.find('input, textarea').removeClass('js-valid').val('');
 		$submit.button('reset');
 	});
 }(jQuery));

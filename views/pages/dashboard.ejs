@@ -10,15 +10,7 @@
         <div class="jumbotron">
             <!-- App tabs -->
             <ul class="nav nav-tabs" role="tablist">
-                <li role="presentation" class="active">
-                    <a href="#search-terms" aria-controls="search-terms" role="tab" data-toggle="tab">Search Terms</a>
-                </li>
-                <li role="presentation">
-                    <a href="#memes" aria-controls="memes" role="tab" data-toggle="tab">Memes</a>
-                </li>
-                <li role="presentation">
-                    <a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">RT Users</a>
-                </li>
+                <% include ../partials/app-tabs %>
             </ul>
 
             <!-- Tab panes -->
@@ -35,7 +27,7 @@
     </footer>
     <!-- Modals -->
     <% include ../partials/search-terms-modal %>
-
+    <% include ../partials/memes-modal %>
     <!-- Scripts -->
     <% include ../partials/scripts %>
     <script src='/js/main.unmin.js'></script>

@@ -2,6 +2,9 @@
 .jumbotron {
 	padding: 10px;
 }
+.hashtags > tbody > tr:hover {
+	border-left: 5px solid #000;
+}
 /** Dashboard **/
 
 /*
@@ -20,8 +23,22 @@
 .js-disabled {
 	pointer-events: none;
 }
-.js-delete, .js-invalid {
+.js-delete {
 	background-color: #FF4136;
+}
+.js-valid {
+	background-color: #d6ffd6;
+	border: 1px solid #5f5;
+	-moz-box-shadow: 0 0 5px rgba(0,155,0,.3);
+	-webkit-box-shadow: 0 0 5px rgba(0,155,0,.3);
+	box-shadow: 0 0 5px rgba(0,155,0,.3);
+}
+.js-invalid {
+	background-color: #ffd6d6;
+	border: 1px solid #f55;
+	-moz-box-shadow: 0 0 5px rgba(155,0,0,.3);
+	-webkit-box-shadow: 0 0 5px rgba(155,0,0,.3);
+	box-shadow: 0 0 5px rgba(155,0,0,.3);
 }
 .js-invalid::-webkit-input-placeholder {
 	color: #111111;
@@ -54,6 +71,9 @@
 }
 
 /** Forms **/
+#memes-description {
+	width: 50px;
+}
 .glyphicon-pencil, .glyphicon-remove {
 	cursor: pointer;
 }

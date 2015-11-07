@@ -25,7 +25,7 @@ function init(app) {
 			if(err) {
 				res.json('Invalid Request.');
 			} else {
-				res.json(userSecrets.hashtags);
+				res.json(userSecrets.memes);
 			}
 		});
 	})
@@ -38,7 +38,7 @@ function init(app) {
 			if(err) {
 				return res.json('Invalid Request.');
 			} else {
-				var hashtag = userSecrets.hashtags.reduce(function(curr, next){
+				var meme = userSecrets.memes.reduce(function(curr, next){
 					if(curr.idx === id) {
 						return curr;
 					} else {
@@ -46,8 +46,8 @@ function init(app) {
 					}
 				});
 
-				if(hashtag) {
-					res.json(hashtag);
+				if(meme) {
+					res.json(meme);
 				} else {
 					res.json('Invalid Request.');
 				}
@@ -57,10 +57,10 @@ function init(app) {
 	.post('/', function(req, res) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
-		var hashtag = {
+		var meme = {
 			idx: randomString(20),
-			frequency: req.body.frequency,
-			name: req.body.name
+			text: req.body.text,
+			url: req.body.url
 		};
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
@@ -68,13 +68,12 @@ function init(app) {
 				return res.json('Invalid Request.');
 			}
 
-			userSecrets.hashtags.push(hashtag);
+			userSecrets.memes.push(meme);
 			userSecrets.save(function(err) {
 				if(err) {
 					res.json('Invalid Request.');
 				} else {
-					// hashtag.idx = idx;
-					res.json(hashtag);
+					res.json(meme);
 				}
 			});
 		});
@@ -85,20 +84,9 @@ function init(app) {
 		var id = req.params.id;
 		var idx;
 		var update = {
-			name: req.body.name,
-			frequency: req.body.frequency
+			text: req.body.text,
+			url: req.body.url
 		};
-
-		// Removes any undefined keys.
-		// Prevents the .extend smashing over
-		// real values upon saving.
-	/*
-		Object.keys(update).forEach(function(key) {
-			if(update[key] == null) {
-				delete update[key];
-			}
-		});
-	*/
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {

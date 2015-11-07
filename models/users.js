@@ -6,17 +6,25 @@ module.exports.init = function(mongoose) {
 		access_token: String,
 		access_token_secret: String,
 		botActions: {
-			"search-terms": {
-				activated: { type: Boolean, default: true }
+			favorites: {
+				activated: { type: Boolean, default: true },
+				since_id: { type: String, default: '1' }
 			},
 			memes: {
-				activated: { type: Boolean, default: true }
+				activated: { type: Boolean, default: true },
+				since_id: { type: String, default: '1' }
 			},
 			"rt-users": {
-				activated: { type: Boolean, default: true }
+				activated: { type: Boolean, default: true },
+				since_id: { type: String, default: '1' }
+			},
+			"search-terms": {
+				activated: { type: Boolean, default: true },
+				since_id: { type: String, default: '1' }
 			}
 		},
-		hashtags: [],
+		hashtags: Array,
+		memes: Array,
 		request_token: String,
 		screen_name: String,
 		user_id: { type: String, unique: true }
