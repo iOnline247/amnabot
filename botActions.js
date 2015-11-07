@@ -12,7 +12,7 @@ function botActions(UsersModel) {
         .then(function() {
             // Bot Actions
             favoriteMentions(15 * 60 * 1000);
-            // autoFollow(20 * 1000);
+            autoFollow(20 * 1000);
             // retweetFromUsers(12 * 60 * 60 * 1000);
             retweetFromSearch(15 * 60 * 1000);
             // autoPrune(2 * 60 * 60 * 1000);
@@ -115,93 +115,96 @@ function autoFollow(retryAfterMs) {
     // TODO:
     // Get activation of memes from DB.
     // Get memes from DB.
-/*
-    var memes [
-        {
-            "text": "That follow tho.",
-            "url": "http://i.imgur.com/gMy40IP.png"
-        },
-        {
-            "text": "While you are sleeping, we\'ll be up tweeting.",
-            "url": "http://i.imgur.com/Zf9MwHY.jpg"
-        },
-        {
-            "text": "Thinking you are just like me!",
-            "url": "http://i.imgur.com/OpTiTwK.jpg"
-        },
-        {
-            "text": "Awwww... you chose me!",
-            "url": "http://i.imgur.com/JgcIuwR.jpg"
-        },
-        {
-            "text": "I am watching you watching me...",
-            "url": "http://i.imgur.com/jPrJRb4.png"
-        },
-        {
-            "text": "Welcome! Now pay attention...",
-            "url": 'http://i.imgur.com/HGFEFzd.jpg'
-        },
-        {
-            "text": "Thanks for understanding us.",
-            "url": "http://i.imgur.com/tCeEDup.jpg"
-        },
-        {
-            "text": "Stay tuned. You never know what\'ll happen next...",
-            "url": "http://i.imgur.com/3VNxkJP.jpg"
-        },
-        {
-            "text": "We think you\'re cool too. We think you\'re THIS cool.",
-            "url": "http://i.imgur.com/vJJvxkJ.jpg"
-        }
+
+    var fields = [
+        'memes',
+        'botActions.memes.since_id',
+        'botActions.memes.activated'
     ];
-*/
-    var memeFrequency = memes.map(function(v, i, arr) {
-        var numOfItems = arr.length;
-        var percentageFrequency = 100 / numOfItems;
-        return numOfItems / ((numOfItems * 100) / percentageFrequency);
-    });
 
     bots.forEach(function(bot) {
         // DEBUG param: {count: 200}
-        bot.twit.get('followers/list', function(err, data) {
+        var userQuery = {
+            user_id: bot.config.user_id
+        };
+
+        Users.findOne(userQuery)
+        .select(fields.join(' '))
+        .exec(function(err, userSecrets) {
+            debugger;
             if(err) {
-                return handleError(err, 'Autofollow: followers/list');
-            }
+                return handleError(err);
+            } else {
+                var config = userSecrets.botActions.memes.toJSON();
+                var memes = userSecrets.memes;
 
-            var followers = data.users;
+                if(!config.activated || !memes.length) {
+                    console.log(
+                        bot.config.screen_name + ': {\n\tactivated:',
+                        config.activated, ', hashtags:', memes.length, '\n}'
+                    );
+                    return;
+                }
 
-            followers.filter(function(user, i) {
-                return user.following === false;
-            })
-            .slice(0, 15)
-            .forEach(function(user, i) {
-                bot.twit.post('friendships/create', { id: user.id_str }, function(err) {
+                var queryOpts = {
+                    // count: 15,
+                    trim_user: true,
+                    include_entities: true,
+                    since_id: config.since_id
+                };
+
+                bot.twit.get('followers/list', function(err, data) {
                     if(err) {
-                        handleError(err, 'friendships/create');
+                        return handleError(err, 'Autofollow: followers/list');
                     }
 
-                    var tweetPic = weightedRandIdx(memes, memeFrequency);
-                    var mentionUser = '@' + user.screen_name;
-                    var tweetText = mentionUser + ' ' + tweetPic.text;
+                    var followers = data.users;
 
-                    bot.uploadPhoto(tweetPic.url, function(err, reply) {
-                        if(err) {
-                            handleError(err, 'Autofollow:uploadPhoto');
-                        }
+                    followers.filter(function(user, i) {
+                        return user.following === false;
+                    })
+                    .slice(0, 15)
+                    .forEach(function(user, i) {
+                        var memeFrequency = memes.map(function(v, i, arr) {
+                            var numOfItems = arr.length;
+                            var percentageFrequency = 100 / numOfItems;
+                            return numOfItems / ((numOfItems * 100) / percentageFrequency);
+                        });
 
-                        bot.tweet(
-                            tweetText,
-                            {
-                                media_ids: reply.media_id_string,
-                                trim_user: true
-                            },
-                            function(err, reply) {
-                                log('Autofollow:Tweet', mentionUser, err || reply);
+
+
+                        debugger;
+
+
+                        bot.twit.post('friendships/create', { id: user.id_str }, function(err) {
+                            if(err) {
+                                handleError(err, 'friendships/create');
                             }
-                        );
+
+                            var tweetPic = weightedRandIdx(memes, memeFrequency);
+                            var mentionUser = '@' + user.screen_name;
+                            var tweetText = mentionUser + ' ' + tweetPic.text;
+
+                            bot.uploadPhoto(tweetPic.url, function(err, reply) {
+                                if(err) {
+                                    handleError(err, 'Autofollow:uploadPhoto');
+                                }
+
+                                bot.tweet(
+                                    tweetText,
+                                    {
+                                        media_ids: reply.media_id_string,
+                                        trim_user: true
+                                    },
+                                    function(err, reply) {
+                                        log('Autofollow:Tweet', mentionUser, err || reply);
+                                    }
+                                );
+                            });
+                        });
                     });
                 });
-            });
+            }
         });
     });
 
