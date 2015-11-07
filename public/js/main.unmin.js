@@ -114,18 +114,26 @@
 	}
 
 	function memeTemplate(meme, addRow) {
+		// TO-FUCKING-DO
+		// Add click handler to image that
+		// opens up edit form.
+		// BOOM: UX Baby!
+
 		var html = '<div class="col-sm-6 col-md-4">' +
-					'<div class="thumbnail">' +
-						'<img src="' + meme.url + '" alt="' + meme.text + '" class="img-circle">' +
-						'<div class="caption">' +
-							'<h3>' + meme.text + '</h3>' +
-							'<p>' +
-								'<a href="#" class="btn btn-link" role="button">Delete</a>' +
-								'<a href="#" class="btn btn-primary" role="button">Edit</a>' +
-							'</p>' +
+						'<div class="thumbnail">' +
+							'<img src="' + meme.url + '" alt="' + meme.text + '" class="img-circle">' +
+							'<div class="caption">' +
+								'<h3>' + meme.text + '</h3>' +
+								'<br>' +
+								'<br>' +
+								'<p class="pull-right">' +
+									'<a href="#" class="btn btn-link" role="button">Delete</a>' +
+									'<a href="#" class="btn btn-primary" role="button">Edit</a>' +
+								'</p>' +
+								'<div class="clearfix"></div>' +
+							'</div>' +
 						'</div>' +
-					'</div>' +
-				'</div>';
+					'</div>';
 
 		function newRow(html) {
 			return '<div class="row">' + html + '</div>';

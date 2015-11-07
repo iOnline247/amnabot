@@ -6,7 +6,9 @@
 	border-left: 5px solid #000;
 }
 /** Dashboard **/
-
+.spacer {
+	margin: 10px;
+}
 /*
 .tweet-search {
   margin: 10px;
