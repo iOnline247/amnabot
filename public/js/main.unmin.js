@@ -51,7 +51,9 @@
 			$('#' + prop + '-toggle')
 				.prop('checked', botActions[prop].activated)
 				.parent('.onoffswitch')
-				.removeClass('js-hidden');
+				.css({opacity: 0})
+				.removeClass('js-vizi-hidden')
+				.animate({opacity: 1}, 1500);
 		});
 
 		// Update DOM!
@@ -114,7 +116,7 @@
 	}
 
 	function memeTemplate(meme, addRow) {
-		// TO-FUCKING-DO
+		// TODO:
 		// Add click handler to image that
 		// opens up edit form.
 		// BOOM: UX Baby!
@@ -172,7 +174,7 @@
 	$('.modal').on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
-		var valid = /(?:https?:)\/\/i\.imgur\.com\/[a-z0-9]{1,}/i.test(value);
+		var valid = /(?:https?:)?\/\/i\.imgur\.com\/[a-z0-9]{1,}/i.test(value);
 
 		$this.toggleClass('js-valid', valid);
 		$this.toggleClass('js-invalid', !valid);
@@ -182,10 +184,10 @@
 	$('.modal').on('input propertychange', 'input[placeholder="Search Term"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
-		var invalid = risBlank.test(value) || !risValidHashtag.test(value);
+		var valid = !risBlank.test(value) || risValidHashtag.test(value);
 
-		$this.toggleClass('js-valid', !invalid);
-		$this.toggleClass('js-invalid', invalid);
+		$this.toggleClass('js-valid', valid);
+		$this.toggleClass('js-invalid', !valid);
 	});
 
 	// Toggle bot actions.
@@ -199,6 +201,10 @@
 				active: this.checked
 			}
 		});
+
+		// TODO:
+		// Add #fail logic
+		// should reset to previous value and add error message.
 	});
 
 	// Undo deletion

@@ -52,8 +52,11 @@
 .js-invalid:-ms-input-placeholder { /* Internet Explorer 10-11 */
    color: #111111;
 }
-.js-hidden {
+.js-display-none {
 	display: none !important;
+}
+.js-vizi-hidden {
+	visibility: hidden;
 }
 
 

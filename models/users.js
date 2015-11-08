@@ -6,13 +6,18 @@ module.exports.init = function(mongoose) {
 		access_token: String,
 		access_token_secret: String,
 		botActions: {
+			"auto-prune": {
+				activated: { type: Boolean, default: false }
+			},
 			favorites: {
 				activated: { type: Boolean, default: true },
 				since_id: { type: String, default: '1' }
 			},
+			"make-friendships": {
+				activated: { type: Boolean, default: true }
+			},
 			memes: {
-				activated: { type: Boolean, default: true },
-				since_id: { type: String, default: '1' }
+				activated: { type: Boolean, default: true }
 			},
 			"rt-users": {
 				activated: { type: Boolean, default: true },

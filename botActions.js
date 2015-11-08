@@ -1,22 +1,17 @@
 module.exports = botActions;
 var Users;
 
-// TODO:
-// Restructure code to query DB on each
-// action instead of caching in
-// autobotsRollout.
-
 function botActions(UsersModel) {
     Users = UsersModel;
     autobotsRollout(Users)
         .then(function() {
             // Bot Actions
             favoriteMentions(15 * 60 * 1000);
-            autoFollow(20 * 1000);
+            autoFollow(15 * 60 * 1000);
             // retweetFromUsers(12 * 60 * 60 * 1000);
             retweetFromSearch(15 * 60 * 1000);
-            // autoPrune(2 * 60 * 60 * 1000);
-            // makeFrienships(100 * 60 * 1000);
+            autoPrune(2 * 60 * 60 * 1000);
+            makeFrienships(100 * 60 * 1000);
         });
 }
 
@@ -45,8 +40,7 @@ var ops = {
             since_id: '1'
         },
         search: {
-            op: 'search/tweets',
-            since_id: '1'
+            op: 'search/tweets'
         }
     },
     post: {
@@ -112,13 +106,8 @@ function autobotsRollout(Users, retryAfterMs) {
 
 // Bot Actions.
 function autoFollow(retryAfterMs) {
-    // TODO:
-    // Get activation of memes from DB.
-    // Get memes from DB.
-
     var fields = [
         'memes',
-        'botActions.memes.since_id',
         'botActions.memes.activated'
     ];
 
@@ -131,7 +120,6 @@ function autoFollow(retryAfterMs) {
         Users.findOne(userQuery)
         .select(fields.join(' '))
         .exec(function(err, userSecrets) {
-            debugger;
             if(err) {
                 return handleError(err);
             } else {
@@ -140,20 +128,21 @@ function autoFollow(retryAfterMs) {
 
                 if(!config.activated || !memes.length) {
                     console.log(
-                        bot.config.screen_name + ': {\n\tactivated:',
+                        bot.config.screen_name + '- Meme action not taken: {\n\tactivated:',
                         config.activated, ', hashtags:', memes.length, '\n}'
                     );
                     return;
                 }
 
                 var queryOpts = {
-                    // count: 15,
-                    trim_user: true,
-                    include_entities: true,
-                    since_id: config.since_id
+                    // Added here for coverage.
+                    // If lots of people are following
+                    // at once, this *should* catch it.
+                    count: 50,
+                    skip_status: true
                 };
 
-                bot.twit.get('followers/list', function(err, data) {
+                bot.twit.get('followers/list', queryOpts, function(err, data) {
                     if(err) {
                         return handleError(err, 'Autofollow: followers/list');
                     }
@@ -161,8 +150,11 @@ function autoFollow(retryAfterMs) {
                     var followers = data.users;
 
                     followers.filter(function(user, i) {
-                        return user.following === false;
+                        return user.following === false && user.follow_request_sent === false;
                     })
+                    // Trimmed to 15 to not offend the API limits.
+                    // The 50 results returned is for high volume
+                    // of follwer activity.
                     .slice(0, 15)
                     .forEach(function(user, i) {
                         var memeFrequency = memes.map(function(v, i, arr) {
@@ -170,11 +162,6 @@ function autoFollow(retryAfterMs) {
                             var percentageFrequency = 100 / numOfItems;
                             return numOfItems / ((numOfItems * 100) / percentageFrequency);
                         });
-
-
-
-                        debugger;
-
 
                         bot.twit.post('friendships/create', { id: user.id_str }, function(err) {
                             if(err) {
@@ -212,12 +199,37 @@ function autoFollow(retryAfterMs) {
 }
 
 function autoPrune(retryAfterMs) {
+    var fields = [
+        'botActions.auto-prune.activated'
+    ];
+
     bots.forEach(function(bot) {
-        bot.prune(function(err, reply) {
+        var userQuery = {
+            user_id: bot.config.user_id
+        };
+
+        Users.findOne(userQuery)
+        .select(fields.join(' '))
+        .exec(function(err, userSecrets) {
             if(err) {
-                handleError(err, 'prune');
+                return handleError(err);
             } else {
-                log('Pruned:', '@' + reply.screen_name);
+                var config = userSecrets.botActions['auto-prune'].toJSON();
+
+                if(!config.activated) {
+                   return console.log(
+                        bot.config.screen_name + ' - auto-prune action not taken: {\n\tactivated:',
+                        config.activated, '\n}'
+                    );
+                }
+
+                bot.prune(function(err, reply) {
+                    if(err) {
+                        handleError(err, 'prune');
+                    } else {
+                        log('Pruned:', '@' + reply.screen_name);
+                    }
+                });
             }
         });
     });
@@ -252,11 +264,10 @@ function retweetFromSearch(retryAfterMs) {
                 var hashtags = userSecrets.hashtags;
 
                 if(!config.activated || !hashtags.length) {
-                    console.log(
-                        bot.config.screen_name + ': {\n\tactivated:',
+                   return console.log(
+                        bot.config.screen_name + ' - Search-Term action not taken: {\n\tactivated:',
                         config.activated, ', hashtags:', hashtags.length, '\n}'
                     );
-                    return;
                 }
 
                 var searchOpts = {
@@ -268,7 +279,7 @@ function retweetFromSearch(retryAfterMs) {
                     return v.name;
                 });
                 var frequencyOfTopics = hashtags.map(function(v) {
-                    return v.frequency *1;
+                    return v.frequency * 1;
                 });
 
                 searchOpts.q = weightedRandIdx(topics, frequencyOfTopics);
@@ -320,8 +331,8 @@ function retweetFromSearch(retryAfterMs) {
                                     return (err) ?
                                         // TODO:
                                         // Remove hardcoded Twitter API action.
-                                        handleError(err, 'Error RT\'ing: statuses/retweet') :
-                                        log(reply);
+                                        handleError(err, 'Error RT\'ing: statuses/retweet:', popularTweet) :
+                                        log('RTFromSearch Success!:', searchOpts.result_type, searchOpts.q, popularTweet.text, reply);
                                 }
                             );
 
@@ -332,7 +343,7 @@ function retweetFromSearch(retryAfterMs) {
                                 if(err) {
                                     handleError(err);
                                 } else {
-                                    log('#retweetFromSearch-Updated: since_id');
+                                    log('#retweetFromSearch-Updated:', bot.config.screen_name, 'botActions.search-terms.since_id:', searchOpts.since_id);
                                 }
                             });
                         } else {
@@ -423,12 +434,37 @@ function retweetFromUsers(retryAfterMs) {
 }
 
 function makeFrienships(retryAfterMs) {
+    var fields = [
+        'botActions.make-friendships.activated'
+    ];
+
     bots.forEach(function(bot) {
-        bot.mingle(function(err, reply) {
+        var userQuery = {
+            user_id: bot.config.user_id
+        };
+
+        Users.findOne(userQuery)
+        .select(fields.join(' '))
+        .exec(function(err, userSecrets) {
             if(err) {
-                handleError(err, 'mingle');
+                return handleError(err);
             } else {
-                log('Mingled with: ', '@' + reply.screen_name);
+                var config = userSecrets.botActions['make-friendships'].toJSON();
+
+                if(!config.activated) {
+                   return console.log(
+                        bot.config.screen_name + ' - make-friendships action not taken: {\n\tactivated:',
+                        config.activated, '\n}'
+                    );
+                }
+
+                bot.mingle(function(err, reply) {
+                    if(err) {
+                        handleError(err, 'mingle');
+                    } else {
+                        log('Mingled with: ', '@' + reply.screen_name);
+                    }
+                });
             }
         });
     });
@@ -456,11 +492,13 @@ function favoriteMentions(retryAfterMs) {
                 var config = userSecrets.botActions.favorites.toJSON();
 
                 if(!config.activated) {
+                    // TODO:
+                    // Add logging here.
                     return;
                 }
 
                 var queryOpts = {
-                    // count: 15,
+                    count: 100,
                     trim_user: true,
                     include_entities: true,
                     since_id: config.since_id
@@ -477,10 +515,10 @@ function favoriteMentions(retryAfterMs) {
                         // Reverse to make the tweets ascending.
                         // This will make the since_id equal to the last mention.
                         tweets.reverse()
-                            .slice(0, 15)
                             .filter(function(v) {
                                 return !v.favorited;
-                            })
+                            })                            
+                            .slice(0, 15)
                             .forEach(function(tweet, i) {
                                 queryOpts.since_id = tweet.id_str;
 
@@ -502,7 +540,7 @@ function favoriteMentions(retryAfterMs) {
                             if(err) {
                                 handleError(err);
                             } else {
-                                log('#favoriteMentions-Updated: since_id');
+                                log(bot.config.screen_name, '#favoriteMentions-Updated: since_id:' + queryOpts.since_id);
                             }
                         });
                     }
