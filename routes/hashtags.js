@@ -21,11 +21,25 @@ function init(app) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
 
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
+		Users.findOne({ user_id: twitterId })
+		.exec(function(err, userSecrets) {
 			if(err) {
 				res.json('Invalid Request.');
 			} else {
-				res.json(userSecrets.hashtags);
+				res.json(userSecrets.hashtags
+				/*
+					userSecrets.hashtags.sort(function (a, b) {
+						if (a.frequency > b.frequency) {
+							return -1;
+						}
+						if (a.frequency < b.frequency) {
+							return 1;
+						}
+
+						return 0;
+					})
+				*/
+				);
 			}
 		});
 	})

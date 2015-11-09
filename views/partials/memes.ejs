@@ -1,6 +1,12 @@
 <div role="tabpanel" class="tab-pane" id="memes">
     <div class="info">
         <p>When a new person follows you, one of these memes will be tweeted to them after following them back.</p>
+        <div class="controls">
+            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#memes-modal" data-form-title='Add Meme'>
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                Add Meme
+            </button>
+        </div>
         <div class="onoffswitch js-vizi-hidden">
             <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox active-toggle" id="memes-toggle" checked>
             <label class="onoffswitch-label" for="memes-toggle">
@@ -10,24 +16,7 @@
         </div>
     </div>
     <div class="memes">
-        <table class="table table-striped table-hover table-bordered memes">
-            <thead>
-                <th></th>
-                <th>Meme URL</th>
-                <th>Tweet Text</th>
-            </thead>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td colspan="2" class='js-no-data'>There aren't any memes.  WTF is wrong with you?!?!</td>
-                </tr>
-            </tbody>
-        </table>
+        <h2>There aren't any memes.  WTF is wrong with you?!?!</h2>
     </div>
-    <div class="controls">
-        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#memes-modal" data-form-title='Add Meme'>
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-            Add Meme
-        </button>
-    </div>
+    <div class="clearfix"></div>
 </div>

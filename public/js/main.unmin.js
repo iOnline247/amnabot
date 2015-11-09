@@ -17,11 +17,14 @@
 	// RegExps
 	var risBlank = /^\s$|^$/;
 	// starts with # followed by a letter. Optional numbers/letters thereafter.
-	var risValidHashtag = /^#[a-z]{1}(?:[a-z0-9]{1,})?$/i
+	var risValidHashtag = /^#[a-z]{1}(?:[a-z0-9]{1,})?$/i;
+	// Optional protocol, verifies the imgur url is valid (mostly).
+	var rimgurUrl = /^(?:https?:)?\/\/i\.imgur\.com\/[a-z0-9]{1,}/i;
 	// $els
 	var $hashtags = $('.hashtags');
 	var $memes = $('.memes');
 	var $hashtagModal = $('#hashtag-modal');
+	var $memesModal = $('#memes-modal');
 	var $activeToggles = $('.active-toggle');
 
 	// Fire when ready!
@@ -31,16 +34,7 @@
 			return hashtagTemplate(hashtag);
 		});
 		memes = memes[0].map(function(meme) {
-			var url = meme.url;
-			var fileExtension = url.slice(url.lastIndexOf('.'))
-
-			// Slicing and dicing for mobile...
-			// Don't make me implement a <picture> solution!
-			url = url.replace(fileExtension, 'b' + fileExtension);
-			var meme = {
-				text: meme.text,
-				url: url
-			};
+			meme.url = getThumbnailUrl(meme.url, 'min');
 
 			return memeTemplate(meme);
 		});
@@ -95,51 +89,64 @@
 */
 
 	// Templates
+	function clearFix() {
+		return '<div class="clearfix"></div>';
+	}
+
+	function hashtagButtonHtml(hashtag) {
+		return 	'<button type="button" class="hidden" data-toggle="modal"' +
+				' data-target="#hashtag-modal" data-idx="' + hashtag.idx + '"' +
+				' data-name="' + hashtag.name + '" data-frequency="' + hashtag.frequency +
+				'" data-form-title="Edit Search Term">Edit Hashtag</button>' +
+				'<span class="glyphicon glyphicon-pencil" aria-hidden="true">' +
+				'</span>&nbsp;&nbsp;&nbsp;&nbsp;' +
+				'<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>';
+	}
+
 	function hashtagTemplate(hashtag) {
-		var frequency = hashtag.frequency * 100;
+		hashtag.frequency = hashtag.frequency * 100;
+
 		return '<tr>' +
 					'<td>' +
-						'<button type="button" class="hidden" data-toggle="modal"' +
-						' data-target="#hashtag-modal" data-idx="' + hashtag.idx + '" ' +
-						'data-name="' + hashtag.name + '" data-frequency="' + frequency +
-						'" data-form-title="Edit Search Term">Edit Hashtag</button>' +
-						'<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;&nbsp;' +
-						'&nbsp;&nbsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>' +
+						hashtagButtonHtml(hashtag) +
 					'<td>' +
 						'<a href="https://twitter.com/search?q=' + encodeURIComponent(hashtag.name) +
 						'" target="_blank">' + hashtag.name + '</a>' +
 					'</td>' +
 					'<td>' +
-						'<span>' + frequency + '%</span>' +
+						'<span>' + hashtag.frequency + '%</span>' +
 					'</td>' +
 				'</tr>';
 	}
 
-	function memeTemplate(meme, addRow) {
-		// TODO:
-		// Add click handler to image that
-		// opens up edit form.
-		// BOOM: UX Baby!
+	function newRow(html) {
+		return '<div class="row">' + html + '</div>';
+	}
 
-		var html = '<div class="col-sm-6 col-md-4">' +
+	function memeButtonHtml(meme) {
+		// TODO:
+		// Rethink how editing works.
+		return 	'<button class="delete" data-idx="' + meme.idx + '">Delete</button>' +
+				'<button type="button" class="btn btn-primary btn-sm" data-toggle="modal"' +
+				' data-target="#memes-modal" data-form-title="Edit Meme" data-url="' +
+				meme.url + '" data-text="' + meme.text + '" data-idx="' + meme.idx + '">' +
+				'<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;' +
+				'&nbsp;Edit Meme</button>';
+	}
+
+	function memeTemplate(meme, addRow) {
+		var html = '<div class="col-sm-6 col-md-4 meme">' +
 						'<div class="thumbnail">' +
 							'<img src="' + meme.url + '" alt="' + meme.text + '" class="img-circle">' +
 							'<div class="caption">' +
 								'<h3>' + meme.text + '</h3>' +
-								'<br>' +
-								'<br>' +
-								'<p class="pull-right">' +
-									'<a href="#" class="btn btn-link" role="button">Delete</a>' +
-									'<a href="#" class="btn btn-primary" role="button">Edit</a>' +
-								'</p>' +
-								'<div class="clearfix"></div>' +
 							'</div>' +
+							'<p class="pull-right">' +
+								memeButtonHtml(meme) +
+							'</p>' +
+							'<div class="clearfix"></div>' +
 						'</div>' +
 					'</div>';
-
-		function newRow(html) {
-			return '<div class="row">' + html + '</div>';
-		}
 
 		if(/addrow/i.test(addRow)) {
 			html = newRow(html);
@@ -160,6 +167,20 @@
 				'</div>';
 	}
 
+	// Utils.
+	function getThumbnailUrl(url, size) {
+		url = url || '';
+		var lastPeriod = url.lastIndexOf('.');
+		var fileExtension = url.slice(lastPeriod);
+
+		if(size === 'min') {
+			return url.slice(0, lastPeriod) + 'b' + fileExtension;
+		}
+		// -1 will slice off the b that was added on the fly earlier.
+		// and return large image.
+		return url.slice(0, url.lastIndexOf('.') - 1) + fileExtension;
+	}
+
 	// Events
 	// Validation of form inputs.
 	$('.modal').on('input propertychange', 'input:not([placeholder="Search Term"]), textarea', function(event) {
@@ -174,7 +195,7 @@
 	$('.modal').on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
-		var valid = /(?:https?:)?\/\/i\.imgur\.com\/[a-z0-9]{1,}/i.test(value);
+		var valid = rimgurUrl.test(value);
 
 		$this.toggleClass('js-valid', valid);
 		$this.toggleClass('js-invalid', !valid);
@@ -230,8 +251,8 @@
 
 	// Edit/Delete Hashtags buttons.
 	$hashtags.on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
-		var isEdit = this.classList.contains('glyphicon-pencil');
 		var $this = $(this);
+		var isEdit = $this.hasClass('glyphicon-pencil');
 		var $button = $this.siblings('button');
 		var $tr = $this.closest('tr');
 		var data = $button.data();
@@ -258,10 +279,6 @@
 						type: 'DELETE'
 					}).then(function(data) {
 						$tr.remove();
-						// console.dir(data);
-						$notification.animate({ opacity: 0 }, 300, function() {
-							$notification.remove();
-						});
 					});
 
 					// TODO:
@@ -309,7 +326,6 @@
 			$submit.button('loading');
 
 			if(risBlank.test(hashtagVal) || !risValidHashtag.test(hashtagVal)) {
-				$hashtag.addClass('js-invalid');
 				invalid = true;
 			}
 
@@ -337,7 +353,7 @@
 
 			dfd.then(function(hashtag) {
 				var $existingSearchTerm = $hashtags.find('.js-no-data, button[data-idx="' + hashtag.idx + '"]');
-				var html = hashtagTemplate(hashtag)
+				var html = hashtagTemplate(hashtag);
 
 				if($existingSearchTerm.length) {
 					$existingSearchTerm.closest('tr').replaceWith(html);
@@ -360,18 +376,127 @@
 				console.dir(arguments);
 			}).always(function() {
 				$modal.modal('hide');
-
 				$submit.off(event);
-
-				$button = null;
-				$modal = null;
-				$submit = null;
-				$hashtag = null;
-				$frequency = null;
 			});
 		});
 	});
 
+	// Delete meme.
+	$memes.on('click', '.delete', function(event) {
+		event.preventDefault();
+		var $this = $(this);
+		var id = $this.data('idx');
+		var $meme = $this.closest('.meme');
+
+		$this.addClass('js-disabled');
+
+		var $notification = $(notificationHtml()).addClass('js-off-screen');
+		var timer;
+
+		$('.notification-bar').prepend($notification);
+		$notification.animate({ right: 0 }, 200, function() {
+			var $notificationButton = $notification.find('button');
+
+			timer = setTimeout(function() {
+				$notificationButton.addClass('js-disabled');
+				$notification.remove();
+
+				$.ajax({
+					url: '/memes/' + id,
+					type: 'DELETE'
+				}).then(function(data) {
+					$meme.remove();
+				});
+
+				// TODO:
+				// Implement #fail logic.
+			}, 2500);
+
+			$notificationButton.data({
+				'timer': timer,
+				'idx': id
+			});
+		});
+
+		$meme.fadeOut(600);
+	});
+	// Memes New/Edit modal.
+	$memesModal.on('show.bs.modal', function (event) {
+		var $button = $(event.relatedTarget); // Button that triggered the modal
+		var $modal = $(this);
+		var $submit = $modal.find('.btn-primary');
+		var $url = $modal.find('[placeholder="Image Url"]');
+		var $comment = $modal.find('.comment');
+		var $idx = $modal.find('.js-index');
+		var data = $button.data();
+		var url = data.url;
+
+		url = getThumbnailUrl(url);
+
+		$url.val(url);
+		$comment.val(data.text);
+		$idx.val(data.idx);
+
+		$submit.on('click', function(event) {
+			var url = $url.val();
+			var comment = $comment.val();
+			var idx = $idx.val();
+			var data = {
+				url: url,
+				text: comment
+			};
+			var dfd;
+
+			$submit.button('loading');
+
+			if(risBlank.test(url) || !rimgurUrl.test(url)) {
+				$url.addClass('js-invalid');
+				$submit.button('reset');
+				return;
+			}
+
+			if(idx === '') {
+				// New search term.
+				dfd = $.post('/memes', data);
+			} else {
+				// Edit search term.
+				dfd = $.ajax({
+					url: '/memes/' + idx,
+					type: 'PUT',
+					data: data
+				});
+			}
+
+			dfd.then(function(meme) {
+				meme.url = getThumbnailUrl(meme.url, 'min');
+				var $existingMeme = $memes.find('button[data-idx="' + meme.idx + '"]');
+				var html = memeTemplate(meme);
+
+				if($existingMeme.length) {
+					$existingMeme.closest('.meme').replaceWith(html);
+				} else {
+					$memes.append(html);
+				}
+
+				$memes.find('button[data-idx="' + meme.idx + '"]')
+					.closest('.meme')
+					.css({ opacity: 0 })
+					.animate({ opacity: 1 }, 1500);
+			}).fail(function(response) {
+				// TODO:
+				// Display fail message.
+				// Recover gracefully.
+				response.status;
+				response.statusText;
+				response.responseText;
+				console.error('Meme - New/Edit failed');
+				console.dir(arguments);
+			}).always(function() {
+				$modal.modal('hide');
+				$submit.off(event);
+			});
+		});
+	});
 	// TODO:
 	// Store $('.modal') globally within this function.
 	$('.modal').on('show.bs.modal', function(event) {

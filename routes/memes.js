@@ -57,10 +57,12 @@ function init(app) {
 	.post('/', function(req, res) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
+		var text = req.body.text || '';
+		var url = req.body.url || '';
 		var meme = {
 			idx: randomString(20),
-			text: req.body.text,
-			url: req.body.url
+			text: text.slice(0, 130),
+			url: url.slice(0, 255)
 		};
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
@@ -95,22 +97,22 @@ function init(app) {
 
 			// TODO:
 			// Look at #reduce.
-			var hashtag = userSecrets.hashtags.filter(function(curr, index){
+			var meme = userSecrets.memes.filter(function(curr, index){
 				if(curr.idx === id) {
 					idx = index;
 					return curr;
 				}
 			})[0];
 
-			if(hashtag) {
-				userSecrets.hashtags[idx] = extend(hashtag, update);
+			if(meme) {
+				userSecrets.memes[idx] = extend(meme, update);
 				// http://mongoosejs.com/docs/api.html#document_Document-markModified
-				userSecrets.markModified('hashtags');
+				userSecrets.markModified('memes');
 				userSecrets.save(function(err) {
 					if(err) {
 						res.json('Invalid Request.');
 					} else {
-						res.json(hashtag);
+						res.json(meme);
 					}
 				});
 			} else {
@@ -129,13 +131,13 @@ function init(app) {
 				return res.json('Invalid Request.');
 			}
 
-			userSecrets.hashtags.forEach(function(curr, index){
+			userSecrets.memes.forEach(function(curr, index){
 				if(curr.idx === id) {
 					idx = index;
 				}
 			});
 
-			userSecrets.hashtags.splice(idx, 1);
+			userSecrets.memes.splice(idx, 1);
 			userSecrets.save(function(err) {
 				if(err) {
 					res.json('Invalid Request.');

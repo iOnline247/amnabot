@@ -56,18 +56,6 @@ function init(app) {
 						});
 					}
 				});
-		/*
-				userSecrets.save(function(err) {
-					if(err) {
-						res.json('Invalid Request.');
-					} else {
-						res.json({
-							response: 'OK',
-							status: 200
-						});
-					}
-				});
-		*/			
 			} else {
 				res.json('Invalid Request.');
 			}

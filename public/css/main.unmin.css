@@ -2,26 +2,10 @@
 .jumbotron {
 	padding: 10px;
 }
-.hashtags > tbody > tr:hover {
-	border-left: 5px solid #000;
+.thumbnail {
+	padding: 20px;
 }
-/** Dashboard **/
-.spacer {
-	margin: 10px;
-}
-/*
-.tweet-search {
-  margin: 10px;
-}
-
-.tweet-search-text {
-  margin: 10px;
-}
-
-.tweet-search-weight {
-  text-align: center;
-}
-*/
+/** JS classes **/
 .js-disabled {
 	pointer-events: none;
 }
@@ -59,6 +43,21 @@
 	visibility: hidden;
 }
 
+/** Dashboard **/
+.hashtags > tbody > tr:hover {
+	border-left: 5px solid #000;
+}
+.spacer {
+	margin: 10px;
+}
+.misc-actions .action:first-child {
+	border: none;
+}
+.misc-actions .action {
+	margin-top: 25px;
+	padding-top: 25px;
+	border-top: 1px #111111 dashed;
+}
 
 /** Notifications **/
 .notification-bar {
@@ -73,6 +72,21 @@
 .js-off-screen {
 	position: absolute;
 	right: -999em;
+}
+
+.memes .delete {
+	background: none;
+	border: none; 
+	margin: 10px;
+	margin-right: 25px;
+	padding: 0;
+
+	font-size: .6em;
+	color: #069;
+	cursor: pointer;
+}
+.memes .delete:hover{
+	text-decoration: underline;
 }
 
 /** Forms **/
