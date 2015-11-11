@@ -1,7 +1,7 @@
-/** Bootsrap overrides **/
-.jumbotron {
-	padding: 10px;
+body {
+	padding-top: 75px;
 }
+/** Bootsrap overrides **/
 .thumbnail {
 	padding: 20px;
 }
@@ -76,7 +76,7 @@
 
 .memes .delete {
 	background: none;
-	border: none; 
+	border: none;
 	margin: 10px;
 	margin-right: 25px;
 	padding: 0;
@@ -112,7 +112,7 @@
 }
 .form-bold {
 	font-size: 25px;
-	font-weight: bold;	
+	font-weight: bold;
 }
 
 /* https://proto.io/freebies/onoff/ */
@@ -157,13 +157,13 @@
     position: absolute; top: 0; bottom: 0;
     right: 81px;
     border: 2px solid #999999; border-radius: 20px;
-    transition: all 0.3s ease-in 0s; 
+    transition: all 0.3s ease-in 0s;
 }
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
     margin-left: 0;
 }
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-    right: 0px; 
+    right: 0px;
 }
 
 /** Modals **/

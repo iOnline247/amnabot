@@ -126,6 +126,9 @@
 	function memeButtonHtml(meme) {
 		// TODO:
 		// Rethink how editing works.
+		// https://desandro.github.io/3dtransforms/docs/card-flip.html
+		// https://davidwalsh.name/css-flip
+		// http://jsfiddle.net/iOnline247/y7zbnoad/
 		return 	'<button class="delete" data-idx="' + meme.idx + '">Delete</button>' +
 				'<button type="button" class="btn btn-primary btn-sm" data-toggle="modal"' +
 				' data-target="#memes-modal" data-form-title="Edit Meme" data-url="' +
@@ -186,7 +189,10 @@
 	$('.modal').on('input propertychange', 'input:not([placeholder="Search Term"]), textarea', function(event) {
 		var $this = $(this);
 		var value = $this.val();
-		var invalid = risBlank.test(value);
+
+		// TODO:
+		// fix this validation.
+		var invalid = risBlank.test(value) && value !== '#';
 
 		$this.toggleClass('js-valid', !invalid);
 		$this.toggleClass('js-invalid', invalid);

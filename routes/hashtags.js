@@ -3,6 +3,11 @@ var express = require('express');
 var extend = require('extend');
 var randomString = require('../utils/randomString');
 
+function res500(res) {
+	return res.status(500)
+				.send({ error: 'Unexpected error while querying the database' });
+}
+
 function init(app) {
 	var router = express.Router();
 	// Verify auth of the requests.
@@ -23,10 +28,11 @@ function init(app) {
 
 		Users.findOne({ user_id: twitterId })
 		.exec(function(err, userSecrets) {
-			if(err) {
-				res.json('Invalid Request.');
+			var dbHasError = err || !userSecrets || !userSecrets.hashtags;
+			if(dbHasError) {
+				res500(res);
 			} else {
-				res.json(userSecrets.hashtags
+				res.json(userSecrets.hashtags);
 				/*
 					userSecrets.hashtags.sort(function (a, b) {
 						if (a.frequency > b.frequency) {
@@ -39,7 +45,6 @@ function init(app) {
 						return 0;
 					})
 				*/
-				);
 			}
 		});
 	})

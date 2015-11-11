@@ -2,6 +2,14 @@ var handleError = require('../utils/logError');
 var express = require('express');
 var extend = require('extend');
 
+function res500(res) {
+	return res.status(500)
+				.send({ error: 'Unexpected error while querying the database' });
+}
+
+// TODO:
+// Remove redundant calls to Users.findOne();
+
 function init(app) {
 	var router = express.Router();
 	// Verify auth of the requests.
@@ -21,8 +29,8 @@ function init(app) {
 		var twitterId = req.deets.user.user_id;
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				res.json('Invalid Request.');
+			if(err || !userSecrets) {
+				res500(res);
 			} else {
 				res.json(userSecrets.botActions);	
 			}
@@ -33,11 +41,12 @@ function init(app) {
 		var twitterId = req.deets.user.user_id;
 		var query = { user_id: twitterId };
 		var botAction = req.params.botAction;
-		var active = !!JSON.parse(req.body.active);
+		var active = !!JSON.parse(req.body.active || null);
 
 		Users.findOne(query).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
+			if(err || !userSecrets) {
+				res500(res);
+				return;
 			}
 
 			var subDoc = userSecrets.botActions[botAction];
@@ -48,7 +57,7 @@ function init(app) {
 
 				Users.update(query, update, function(err) {
 					if(err) {
-						res.json('Invalid Request.');
+						res500(res);
 					} else {
 						res.json({
 							response: 'OK',
@@ -57,7 +66,9 @@ function init(app) {
 					}
 				});
 			} else {
-				res.json('Invalid Request.');
+				res.status(400).send({
+					error: 'Invalid botaction'
+				});
 			}
 		});
 	});
