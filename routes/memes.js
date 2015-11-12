@@ -3,6 +3,17 @@ var express = require('express');
 var extend = require('extend');
 var randomString = require('../utils/randomString');
 
+function res500(res) {
+	return 	res.status(500)
+				.send({ error: 'Unexpected error while querying the database' });
+}
+
+function res400(res, id) {
+	return res.status(400).send({
+		error: 'Invalid hashtag: ' + id
+	});
+}
+
 function init(app) {
 	var router = express.Router();
 	// Verify auth of the requests.
@@ -22,8 +33,9 @@ function init(app) {
 		var twitterId = req.deets.user.user_id;
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				res.json('Invalid Request.');
+			var hasDbError = err || (!userSecrets || !userSecrets.memes);
+			if(hasDbError) {
+				return res500(res);
 			} else {
 				res.json(userSecrets.memes);
 			}
@@ -35,8 +47,9 @@ function init(app) {
 		var id = req.params.id;
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
+			var hasDbError = err || (!userSecrets || !userSecrets.memes);
+			if(hasDbError) {
+				return res500(res);
 			} else {
 				var meme = userSecrets.memes.reduce(function(curr, next){
 					if(curr.idx === id) {
@@ -49,7 +62,7 @@ function init(app) {
 				if(meme) {
 					res.json(meme);
 				} else {
-					res.json('Invalid Request.');
+					res400(res, id);
 				}
 			}
 		});
@@ -67,13 +80,13 @@ function init(app) {
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
-				return res.json('Invalid Request.');
+				return res500(res);
 			}
 
 			userSecrets.memes.push(meme);
 			userSecrets.save(function(err) {
 				if(err) {
-					res.json('Invalid Request.');
+					res500(res);
 				} else {
 					res.json(meme);
 				}
@@ -91,8 +104,9 @@ function init(app) {
 		};
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
+			var hasDbError = err || (!userSecrets || !userSecrets.memes);
+			if(hasDbError) {
+				return res500(res);
 			}
 
 			// TODO:
@@ -116,7 +130,7 @@ function init(app) {
 					}
 				});
 			} else {
-				res.json('Invalid Request.');
+				res400(res, id);
 			}
 		});
 	})
@@ -127,8 +141,9 @@ function init(app) {
 		var idx;
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
-			if(err) {
-				return res.json('Invalid Request.');
+			var hasDbError = err || (!userSecrets || !userSecrets.memes);
+			if(hasDbError) {
+				return res500(res);
 			}
 
 			userSecrets.memes.forEach(function(curr, index){
@@ -137,17 +152,21 @@ function init(app) {
 				}
 			});
 
-			userSecrets.memes.splice(idx, 1);
-			userSecrets.save(function(err) {
-				if(err) {
-					res.json('Invalid Request.');
-				} else {
-					res.json({
-						response: 'OK',
-						status: 200
-					});
-				}
-			});
+			if(idx) {
+				userSecrets.memes.splice(idx, 1);
+				userSecrets.save(function(err) {
+					if(err) {
+						res.json('Invalid Request.');
+					} else {
+						res.json({
+							response: 'OK',
+							message: 'Meme deleted.'
+						});
+					}
+				});				
+			} else {
+				res400(res, id);
+			}
 		});
 	});
 

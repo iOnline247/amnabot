@@ -4,8 +4,14 @@ var extend = require('extend');
 var randomString = require('../utils/randomString');
 
 function res500(res) {
-	return res.status(500)
+	return 	res.status(500)
 				.send({ error: 'Unexpected error while querying the database' });
+}
+
+function res400(res, id) {
+	return res.status(400).send({
+		error: 'Invalid hashtag: ' + id
+	});
 }
 
 function init(app) {
@@ -55,9 +61,9 @@ function init(app) {
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
-				return res.json('Invalid Request.');
+				return res500(res);
 			} else {
-				var hashtag = userSecrets.hashtags.reduce(function(curr, next){
+				var hashtag = userSecrets.hashtags.reduce(function(curr, next) {
 					if(curr.idx === id) {
 						return curr;
 					} else {
@@ -68,7 +74,7 @@ function init(app) {
 				if(hashtag) {
 					res.json(hashtag);
 				} else {
-					res.json('Invalid Request.');
+					res400(res, id);
 				}
 			}
 		});
@@ -84,13 +90,13 @@ function init(app) {
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
-				return res.json('Invalid Request.');
+				return res500(res);
 			}
 
 			userSecrets.hashtags.push(hashtag);
 			userSecrets.save(function(err) {
 				if(err) {
-					res.json('Invalid Request.');
+					res500(res);
 				} else {
 					// hashtag.idx = idx;
 					res.json(hashtag);
@@ -108,20 +114,9 @@ function init(app) {
 			frequency: req.body.frequency
 		};
 
-		// Removes any undefined keys.
-		// Prevents the .extend smashing over
-		// real values upon saving.
-	/*
-		Object.keys(update).forEach(function(key) {
-			if(update[key] == null) {
-				delete update[key];
-			}
-		});
-	*/
-
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
-				return res.json('Invalid Request.');
+				return res500(res);
 			}
 
 			// TODO:
@@ -145,7 +140,7 @@ function init(app) {
 					}
 				});
 			} else {
-				res.json('Invalid Request.');
+				res400(res, id);
 			}
 		});
 	})
@@ -157,7 +152,7 @@ function init(app) {
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
-				return res.json('Invalid Request.');
+				return res500(res);
 			}
 
 			userSecrets.hashtags.forEach(function(curr, index){
@@ -166,17 +161,21 @@ function init(app) {
 				}
 			});
 
-			userSecrets.hashtags.splice(idx, 1);
-			userSecrets.save(function(err) {
-				if(err) {
-					res.json('Invalid Request.');
-				} else {
-					res.json({
-						response: 'OK',
-						status: 200
-					});
-				}
-			});
+			if(idx) {
+				userSecrets.hashtags.splice(idx, 1);
+				userSecrets.save(function(err) {
+					if(err) {
+						res.json('Invalid Request.');
+					} else {
+						res.json({
+							response: 'OK',
+							status: 200
+						});
+					}
+				});				
+			} else {
+				res400(res, id);
+			}
 		});
 	});
 

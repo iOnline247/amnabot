@@ -2,6 +2,11 @@ body {
 	padding-top: 75px;
 }
 /** Bootsrap overrides **/
+@media (max-width:767px) {
+	.navbar-brand {
+		margin: 0.2;
+	}
+}
 .thumbnail {
 	padding: 20px;
 }
@@ -62,17 +67,44 @@ body {
 /** Notifications **/
 .notification-bar {
 	position: absolute;
-	min-width: 100%;
-	width: 100%;
-	background-color: black;
+	min-width: 50%;
+	margin-top: 7px;
 }
-.notification-bar .js-notification {
-	z-index: 100;
-}
-.js-off-screen {
-	position: absolute;
-	right: -999em;
-}
+
+	/* 	TODO:
+		Add media query on width so the
+		notification looks good on mobile.
+	*/
+	.notification-bar .js-notification {
+		right: 0;
+		z-index: 100;
+		width: 400px;
+		font-size: 18px;
+	}
+
+	.notification-bar .js-off-screen {
+		position: absolute;
+		left: -999em;
+	}
+	.notification-bar .js-on-screen {
+		right: 0;
+	}
+	.notification-bar .js-show-notification { 
+		position: relative;
+	}
+
+	.notification-bar .js-undo {
+		background: none;
+		margin-left: 100px;
+		padding: 0;
+		border: none;
+		
+		font-size: 1em;
+		cursor: pointer;
+	}
+		.notification-bar .js-undo .glyphicon {
+			color: #FF4136;
+		}
 
 .memes .delete {
 	background: none;

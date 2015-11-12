@@ -20,10 +20,21 @@
 	var risValidHashtag = /^#[a-z]{1}(?:[a-z0-9]{1,})?$/i;
 	// Optional protocol, verifies the imgur url is valid (mostly).
 	var rimgurUrl = /^(?:https?:)?\/\/i\.imgur\.com\/[a-z0-9]{1,}/i;
+
+	// Timings
+	var timings = {
+		fadeIn: 600,
+		fadeOut: 800,
+		"delete": 4000,
+		notification: 300,
+		opacity: 1500
+	}
+
 	// $els
 	var $hashtags = $('.hashtags');
 	var $memes = $('.memes');
 	var $hashtagModal = $('#hashtag-modal');
+	var $modals = $('.modal');
 	var $memesModal = $('#memes-modal');
 	var $activeToggles = $('.active-toggle');
 
@@ -47,7 +58,7 @@
 				.parent('.onoffswitch')
 				.css({opacity: 0})
 				.removeClass('js-vizi-hidden')
-				.animate({opacity: 1}, 1500);
+				.animate({ opacity: 1 }, timings.opacity);
 		});
 
 		// Update DOM!
@@ -94,10 +105,10 @@
 	}
 
 	function hashtagButtonHtml(hashtag) {
-		return 	'<button type="button" class="hidden" data-toggle="modal"' +
+		return 	'<button type="button" class="hidden js-data-button" data-toggle="modal"' +
 				' data-target="#hashtag-modal" data-idx="' + hashtag.idx + '"' +
 				' data-name="' + hashtag.name + '" data-frequency="' + hashtag.frequency +
-				'" data-form-title="Edit Search Term">Edit Hashtag</button>' +
+				'" data-form-title="Edit Search Term">Edit hashtag</button>' +
 				'<span class="glyphicon glyphicon-pencil" aria-hidden="true">' +
 				'</span>&nbsp;&nbsp;&nbsp;&nbsp;' +
 				'<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>';
@@ -106,7 +117,7 @@
 	function hashtagTemplate(hashtag) {
 		hashtag.frequency = hashtag.frequency * 100;
 
-		return '<tr>' +
+		return '<tr class="hashtag">' +
 					'<td>' +
 						hashtagButtonHtml(hashtag) +
 					'<td>' +
@@ -130,11 +141,11 @@
 		// https://davidwalsh.name/css-flip
 		// http://jsfiddle.net/iOnline247/y7zbnoad/
 		return 	'<button class="delete" data-idx="' + meme.idx + '">Delete</button>' +
-				'<button type="button" class="btn btn-primary btn-sm" data-toggle="modal"' +
-				' data-target="#memes-modal" data-form-title="Edit Meme" data-url="' +
-				meme.url + '" data-text="' + meme.text + '" data-idx="' + meme.idx + '">' +
-				'<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>&nbsp;' +
-				'&nbsp;Edit Meme</button>';
+				'<button type="button" class="btn btn-primary btn-sm js-data-button" ' +
+				'data-toggle="modal" data-target="#memes-modal" data-form-title="Edit Meme" ' +
+				'data-url="' + meme.url + '" data-text="' + meme.text + '" data-idx="' + 
+				meme.idx + '">' + '<span class="glyphicon glyphicon-pencil" aria-hidden="true">' +
+				'</span>&nbsp;&nbsp;Edit meme</button>';
 	}
 
 	function memeTemplate(meme, addRow) {
@@ -162,10 +173,13 @@
 		// TODO:
 		// Make text dynamic.
 		// Maybe pass in timer ID for encapsulation?
-		return 	'<div class="js-notification">' +
+		return 	'<div class="js-notification pull-right">' +
 					'<div class="alert alert-success">' +
-						'<strong>Delete successful!</strong> ' +
-						'<button class="js-undo">Click to undo.</button>' +
+						'<strong><span class="glyphicon glyphicon-ok-circle" ' +
+						'aria-hidden="true"></span> Delete successful!</strong> ' +
+						'<button class="js-undo pull-right"><strong>' +
+						'<span class="glyphicon glyphicon-remove-circle" ' +
+						'aria-hidden="true"></span> Undo?</strong></button>' +
 					'</div>' +
 				'</div>';
 	}
@@ -186,7 +200,7 @@
 
 	// Events
 	// Validation of form inputs.
-	$('.modal').on('input propertychange', 'input:not([placeholder="Search Term"]), textarea', function(event) {
+	$modals.on('input propertychange', 'input:not([placeholder="Search Term"]), textarea:not(.meme-comment)', function(event) {
 		var $this = $(this);
 		var value = $this.val();
 
@@ -198,7 +212,7 @@
 		$this.toggleClass('js-invalid', invalid);
 	});
 
-	$('.modal').on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
+	$modals.on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
 		var valid = rimgurUrl.test(value);
@@ -208,7 +222,7 @@
 	});
 
 	// Validate search term input
-	$('.modal').on('input propertychange', 'input[placeholder="Search Term"]', function(event) {
+	$modals.on('input propertychange', 'input[placeholder="Search Term"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
 		var valid = !risBlank.test(value) || risValidHashtag.test(value);
@@ -243,14 +257,15 @@
 
 		// TODO:
 		// Make this work for each tab.
-		// Remove js-disabled and
-		// Fade in removed <tr>.
-		$hashtags.find('button[data-idx="' + data.idx + '"]')
+		// Remove js-disabled on action element.
+		$(data.tab).find('button.js-data-button[data-idx="' + data.idx + '"]')
 			.siblings('.glyphicon-remove').removeClass('js-disabled')
-			.closest('tr').fadeIn(600);
+			// Bounce back to the button.
+			.end()
+			.closest(data.container).fadeIn(timings.fadeIn);
 
 		// Remove Notification.
-		$this.closest('.js-notification').animate({ opacity: 0 }, 300, function() {
+		$this.closest('.js-notification').animate({ opacity: 0 }, timings.notification, function() {
 			$(this).remove();
 		});
 	});
@@ -273,10 +288,13 @@
 			var timer;
 
 			$('.notification-bar').prepend($notification);
-			$notification.animate({ right: 0 }, 200, function() {
+			$notification.animate({ left: 0 }, timings.notification, function() {
+				$notification.addClass('js-show-notification');
+
 				var $notificationButton = $notification.find('button');
 
 				timer = setTimeout(function() {
+					/*
 					$notificationButton.addClass('js-disabled');
 					$notification.remove();
 
@@ -286,18 +304,21 @@
 					}).then(function(data) {
 						$tr.remove();
 					});
-
+*/
+					// console.warn('would have deleted this by now.');
 					// TODO:
 					// Implement #fail logic.
-				}, 2500);
+				}, timings.delete);
 
 				$notificationButton.data({
-					'timer': timer,
-					'idx': id
+					tab: '.hashtags',
+					container: '.hashtag',
+					timer: timer,
+					idx: id
 				});
 			});
 
-			$tr.fadeOut(600);
+			$tr.fadeOut(timings.fadeOut);
 		}
 	});
 
@@ -370,7 +391,7 @@
 				$hashtags.find('button[data-idx="' + hashtag.idx + '"]')
 					.closest('tr')
 					.css({ opacity: 0 })
-					.animate({ opacity: 1 }, 1500);
+					.animate({ opacity: 1 }, timings.opacity);
 			}).fail(function(response) {
 				// TODO:
 				// Display fail message.
@@ -400,7 +421,8 @@
 		var timer;
 
 		$('.notification-bar').prepend($notification);
-		$notification.animate({ right: 0 }, 200, function() {
+		$notification.animate({ left: 0 }, timings.notification, function() {
+			$notification.addClass('js-show-notification');
 			var $notificationButton = $notification.find('button');
 
 			timer = setTimeout(function() {
@@ -414,25 +436,29 @@
 					$meme.remove();
 				});
 
+				// console.warn('would have deleted this by now.');
 				// TODO:
 				// Implement #fail logic.
-			}, 2500);
+			}, timings.delete);
 
 			$notificationButton.data({
-				'timer': timer,
-				'idx': id
+				tab: '.memes',
+				container: '.meme',
+				timer: timer,
+				idx: id
 			});
 		});
 
-		$meme.fadeOut(600);
+		$meme.fadeOut(timings.fadeOut);
 	});
+
 	// Memes New/Edit modal.
 	$memesModal.on('show.bs.modal', function (event) {
 		var $button = $(event.relatedTarget); // Button that triggered the modal
 		var $modal = $(this);
 		var $submit = $modal.find('.btn-primary');
 		var $url = $modal.find('[placeholder="Image Url"]');
-		var $comment = $modal.find('.comment');
+		var $comment = $modal.find('.meme-comment');
 		var $idx = $modal.find('.js-index');
 		var data = $button.data();
 		var url = data.url;
@@ -487,7 +513,7 @@
 				$memes.find('button[data-idx="' + meme.idx + '"]')
 					.closest('.meme')
 					.css({ opacity: 0 })
-					.animate({ opacity: 1 }, 1500);
+					.animate({ opacity: 1 }, timings.opacity);
 			}).fail(function(response) {
 				// TODO:
 				// Display fail message.
@@ -505,7 +531,7 @@
 	});
 	// TODO:
 	// Store $('.modal') globally within this function.
-	$('.modal').on('show.bs.modal', function(event) {
+	$modals.on('show.bs.modal', function(event) {
 		var $modal = $(this);
 		var $button = $(event.relatedTarget);
 		var data = $button.data();
@@ -513,17 +539,17 @@
 		$modal.find('.modal-title').text(data.formTitle);
 	});
 
-	$('.modal').on('shown.bs.modal', function() {
+	$modals.on('shown.bs.modal', function() {
 		var $modal = $(this);
 		$modal.find('input, textarea').first().focus();
 	});
 
-	$('.modal').on('hidden.bs.modal', function() {
+	$modals.on('hidden.bs.modal', function() {
 		var $modal = $(this);
 		var $submit = $modal.find('.btn-primary');
 
 		$modal.find('.js-invalid').removeClass('js-invalid').val('');
-		$modal.find('input, textarea').removeClass('js-valid').val('');
+		$modal.find('.js-valid').removeClass('js-valid').val('');
 		$submit.button('reset');
 	});
 }(jQuery));
