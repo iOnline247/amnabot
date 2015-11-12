@@ -294,7 +294,6 @@
 				var $notificationButton = $notification.find('button');
 
 				timer = setTimeout(function() {
-					/*
 					$notificationButton.addClass('js-disabled');
 					$notification.remove();
 
@@ -304,7 +303,7 @@
 					}).then(function(data) {
 						$tr.remove();
 					});
-*/
+
 					// console.warn('would have deleted this by now.');
 					// TODO:
 					// Implement #fail logic.
