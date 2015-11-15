@@ -49,11 +49,11 @@ var ops = {
         }
     }
 };
-var rnaughtyNaughty = /#(?:boobs?|milf|naked|porno?|idgaf)|(?:fetish|booty|nsfw|cock)/i;
 
 // Utils.
 var randIdx = require('./utils/randIndex');
 var weightedRandIdx = require('./utils/weightedRandomIndex');
+var rnaughtyNaughty = require('./utils/filterWords');
 var extend = require('extend');
 var handleError = require('./utils/logError');
 var log = require('./utils/log');
@@ -65,11 +65,11 @@ function autobotsRollout(Users, retryAfterMs) {
         'user_id',
         'screen_name',
         'access_token',
-        'access_token_secret',
-        'botActions',
-        'hashtags',
-        'memes',
-        'rtUsers'
+        'access_token_secret'
+        // 'botActions',
+        // 'hashtags',
+        // 'memes',
+        // 'rtUsers'
     ];
 
     log('Querying Mongo for valid users...');
@@ -88,11 +88,7 @@ function autobotsRollout(Users, retryAfterMs) {
                         access_token: v.access_token,
                         access_token_secret: v.access_token_secret,
                         screen_name: v.screen_name,
-                        user_id: v.user_id,
-                        botActions: v.botActions.toJSON(),
-                        hashtags: v.hashtags,
-                        memes: v.memes,
-                        rtUsers: v.rtUsers
+                        user_id: v.user_id
                     };
 
                     return new Bot(extend({}, config, opts));
@@ -128,7 +124,7 @@ function autoFollow(retryAfterMs) {
 
                 if(!config.activated || !memes.length) {
                     console.log(
-                        bot.config.screen_name + '- Meme action not taken: {\n\tactivated:',
+                        bot.config.screen_name + ' - Meme action not taken: {\n\tactivated:',
                         config.activated, ', hashtags:', memes.length, '\n}'
                     );
                     return;

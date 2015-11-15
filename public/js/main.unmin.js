@@ -21,7 +21,7 @@
 	// Optional protocol, verifies the imgur url is valid (mostly).
 	var rimgurUrl = /^(?:https?:)?\/\/i\.imgur\.com\/[a-z0-9]{1,}/i;
 
-	// Timings
+	// Animation timings.
 	var timings = {
 		fadeIn: 600,
 		fadeOut: 800,
@@ -64,10 +64,20 @@
 		// Update DOM!
 		if(hashtags.length) {
 			$hashtags.find('tbody').html(hashtags.join(''));
+		} else {
+			// TODO:
+			// Remove existing "no items" template
+			// add twirly whirly.
+			// Add no items template here.
 		}
 
 		if(memes.length) {
 			$memes.html(memes.join(''));
+		} else {
+			// TODO:
+			// Remove existing "no items" template
+			// add twirly whirly.
+			// Add no items template here.
 		}
 	}).fail(function() {
 		debugger;
@@ -170,9 +180,6 @@
 	}
 
 	function notificationHtml() {
-		// TODO:
-		// Make text dynamic.
-		// Maybe pass in timer ID for encapsulation?
 		return 	'<div class="js-notification pull-right">' +
 					'<div class="alert alert-success">' +
 						'<strong><span class="glyphicon glyphicon-ok-circle" ' +
@@ -199,6 +206,8 @@
 	}
 
 	// Events
+	// TODO:
+	// Add class, remove "Search Term" selector.
 	// Validation of form inputs.
 	$modals.on('input propertychange', 'input:not([placeholder="Search Term"]), textarea:not(.meme-comment)', function(event) {
 		var $this = $(this);
@@ -212,6 +221,8 @@
 		$this.toggleClass('js-invalid', invalid);
 	});
 
+	// TODO:
+	// Add class, remove "Image Url" selector.
 	$modals.on('input propertychange', 'input[placeholder="Image Url"]', function(event) {
 		var $this = $(this);
 		var value = $this.val();
@@ -221,6 +232,8 @@
 		$this.toggleClass('js-invalid', !valid);
 	});
 
+	// TODO:
+	// Add class, remove "Search Term" selector.
 	// Validate search term input
 	$modals.on('input propertychange', 'input[placeholder="Search Term"]', function(event) {
 		var $this = $(this);
@@ -259,6 +272,8 @@
 		// Make this work for each tab.
 		// Remove js-disabled on action element.
 		$(data.tab).find('button.js-data-button[data-idx="' + data.idx + '"]')
+			// TODO:
+			// Use .delete on any deletion actions.
 			.siblings('.glyphicon-remove').removeClass('js-disabled')
 			// Bounce back to the button.
 			.end()
@@ -270,6 +285,8 @@
 		});
 	});
 
+	// TODO:
+	// Remove delete and add to .delete event below.
 	// Edit/Delete Hashtags buttons.
 	$hashtags.on('click', '.glyphicon-pencil, .glyphicon-remove', function(event) {
 		var $this = $(this);
@@ -407,6 +424,8 @@
 		});
 	});
 
+	// TODO:
+	// Make this work for anything deletable.
 	// Delete meme.
 	$memes.on('click', '.delete', function(event) {
 		event.preventDefault();

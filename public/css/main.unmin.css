@@ -184,7 +184,7 @@ body {
     text-align: right;
 }
 .onoffswitch-switch {
-    display: block; width: 36px; margin: -2.5px;
+    display: block; width: 36px; margin: -2.0px;
     background: #FFFFFF;
     position: absolute; top: 0; bottom: 0;
     right: 81px;
