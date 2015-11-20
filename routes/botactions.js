@@ -2,13 +2,28 @@ var handleError = require('../utils/logError');
 var express = require('express');
 var extend = require('extend');
 
+// Botaction Utils.
 function res500(res) {
 	return res.status(500)
 				.send({ error: 'Unexpected error while querying the database' });
 }
 
-// TODO:
-// Remove redundant calls to Users.findOne();
+function sanitizeSearchTypes(searchTypes) {
+	var SEARCH_TYPES = {
+		popular: true,
+		mixed: true,
+		recent: true
+	};
+
+	searchTypes = Array.isArray(searchTypes) ?
+		searchTypes :
+		Array.of(searchTypes || [])
+	;
+	// Removes invalid types.
+	return searchTypes.filter(v => {
+		return SEARCH_TYPES[v];
+	});
+}
 
 function init(app) {
 	var router = express.Router();
@@ -16,19 +31,17 @@ function init(app) {
 	router.use(function(req, res, next) {
 	    // Authorize for /api calls.
 	    try {
-	    	var twitterId = req.deets.user.user_id;
+	    	req.db.userQuery = { user_id: req.deets.user.user_id };
+	    	req.db.user = req.db.Users.findOne(req.db.userQuery);
+
+	    	next();
 	    } catch(e) {
 	    	res.redirect('/login');
 	    	return next(new Error('User not authenticated.'));
 	    }
-
-	    next();
 	})
 	.get('/', function(req, res) {
-		var Users = req.db.Users;
-		var twitterId = req.deets.user.user_id;
-
-		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
+		req.db.user.exec(function(err, userSecrets) {
 			if(err || !userSecrets) {
 				res500(res);
 			} else {
@@ -36,14 +49,50 @@ function init(app) {
 			}
 		});
 	})
+	.get('/search-terms/searchTypes', function(req, res) {
+		req.db.user.exec(function(err, userSecrets) {
+			if(err || !userSecrets) {
+				res500(res);
+			} else {
+				res.json(userSecrets.botActions['search-terms'].searchTypes);	
+			}
+		});
+	})
+	.put('/search-terms/searchTypes', function(req, res) {
+		var searchTypes = sanitizeSearchTypes(req.body['searchTypes[]']);
+
+		req.db.user.exec(function(err, userSecrets) {
+			if(err || !userSecrets) {
+				res500(res);
+				return;
+			}
+
+			var subDoc = userSecrets.botActions['search-terms'];
+
+			if(subDoc) {
+				var update = {};
+				update['botActions.search-terms.searchTypes'] = searchTypes;
+
+				req.db.user.update(req.db.userQuery, update, function(err) {
+					if(err) {
+						res500(res);
+					} else {
+						res.json({
+							response: 'OK',
+							status: 200
+						});
+					}
+				});
+			} else {
+				res500(res);
+			}
+		});
+	})
 	.put('/:botAction', function(req, res) {
-		var Users = req.db.Users;
-		var twitterId = req.deets.user.user_id;
-		var query = { user_id: twitterId };
 		var botAction = req.params.botAction;
 		var active = !!JSON.parse(req.body.active || null);
 
-		Users.findOne(query).exec(function(err, userSecrets) {
+		req.db.user.exec(function(err, userSecrets) {
 			if(err || !userSecrets) {
 				res500(res);
 				return;
@@ -55,7 +104,7 @@ function init(app) {
 				var update = {};
 				update['botActions.' + botAction + '.activated'] = active;
 
-				Users.update(query, update, function(err) {
+				req.db.user.update(req.db.userQuery, update, function(err) {
 					if(err) {
 						res500(res);
 					} else {

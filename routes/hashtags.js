@@ -148,7 +148,7 @@ function init(app) {
 		var Users = req.db.Users;
 		var twitterId = req.deets.user.user_id;
 		var id = req.params.id;
-		var idx;
+		var idx = -1;
 
 		Users.findOne({ user_id: twitterId }).exec(function(err, userSecrets) {
 			if(err) {
@@ -161,7 +161,7 @@ function init(app) {
 				}
 			});
 
-			if(idx) {
+			if(idx > -1) {
 				userSecrets.hashtags.splice(idx, 1);
 				userSecrets.save(function(err) {
 					if(err) {

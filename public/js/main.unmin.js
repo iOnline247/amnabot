@@ -9,7 +9,7 @@
 
 	setCSRFToken($('input[name="_csrf"]').val());
 
-	var routes = ['/hashtags', '/memes', '/botactions'];
+	var routes = ['/hashtags', '/memes', '/botactions', '/botactions/search-terms/searchTypes'];
 	var apiCalls = routes.map(function(route) {
 		return $.getJSON(route);
 	});
@@ -25,7 +25,7 @@
 	var timings = {
 		fadeIn: 600,
 		fadeOut: 800,
-		"delete": 4000,
+		"delete": 5.5 * 1000,
 		notification: 300,
 		opacity: 1500
 	}
@@ -37,17 +37,21 @@
 	var $modals = $('.modal');
 	var $memesModal = $('#memes-modal');
 	var $activeToggles = $('.active-toggle');
+	var $searchTypes = $('.regular-checkbox');
 
 	// Fire when ready!
 	$.when.apply($, apiCalls)
-	.then(function(hashtags, memes, botActions) {
-		hashtags = hashtags[0].map(function(hashtag) {
+	.then(function(hashtags, memes, botActions, searchTypes) {
+		hashtags = hashtags[0].map(hashtag => {
 			return hashtagTemplate(hashtag);
 		});
-		memes = memes[0].map(function(meme) {
+		memes = memes[0].map(meme => {
 			meme.url = getThumbnailUrl(meme.url, 'min');
 
 			return memeTemplate(meme);
+		});
+		searchTypes[0].forEach(v => {
+			$('#search-type-' + v).prop('checked', true);
 		});
 
 		// Toggles.
@@ -61,7 +65,7 @@
 				.animate({ opacity: 1 }, timings.opacity);
 		});
 
-		// Update DOM!
+		// Update DOM, if there are values.
 		if(hashtags.length) {
 			$hashtags.find('tbody').html(hashtags.join(''));
 		} else {
@@ -180,7 +184,7 @@
 	}
 
 	function notificationHtml() {
-		return 	'<div class="js-notification pull-right">' +
+		return 	'<div class="js-notification pull-right visible-xs-undo">' +
 					'<div class="alert alert-success">' +
 						'<strong><span class="glyphicon glyphicon-ok-circle" ' +
 						'aria-hidden="true"></span> Delete successful!</strong> ' +

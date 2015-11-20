@@ -49,6 +49,57 @@ body {
 }
 
 /** Dashboard **/
+#search-terms .controls {
+	min-height: 50px;
+}
+#search-terms .search-types > p {
+	margin-bottom: 8px;
+}
+.search-types .checkbox {
+	display: inline;
+}
+.search-types label {
+    display: inline-block;
+    position: relative;
+    margin-right: 25px;
+    padding-left: 25px;
+
+    font-size: 16px;
+
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.search-types label:before {
+    content: "";
+    display: inline-block;
+ 
+    width: 20px;
+    height: 20px;
+ 
+    margin-right: 10px;
+    position: absolute;
+    left: 0;
+    /* bottom: 1px; */
+    background-color: #777;
+    border-radius: 3px;
+    box-shadow: inset 0px 2px 3px 0px rgba(0, 0, 0, .3), 0px 1px 0px 0px rgba(255, 255, 255, .8);
+}
+
+.search-types input[type="checkbox"] {
+    display: none;
+}
+.search-types input[type="checkbox"]:checked + label:before {
+    content: "\2713";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .2);
+    font-size: 26px;
+    font-weight: 900;
+    color: #f3f3f3;
+    text-align: center;
+    line-height: 15px;
+}
+
 .hashtags > tbody > tr:hover {
 	border-left: 5px solid #000;
 }
@@ -81,6 +132,9 @@ body {
 		width: 400px;
 		font-size: 18px;
 	}
+	.notification-bar .visible-xs-undo {
+		width: 325px;
+	}
 
 	.notification-bar .js-off-screen {
 		position: absolute;
@@ -95,7 +149,7 @@ body {
 
 	.notification-bar .js-undo {
 		background: none;
-		margin-left: 100px;
+		margin-left: 10px;
 		padding: 0;
 		border: none;
 		

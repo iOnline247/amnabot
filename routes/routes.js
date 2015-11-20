@@ -93,9 +93,7 @@ function reqTokenCheck(req, res, next) {
 	if(user) {
 		next();
 	} else if(request_token) {
-		var db = req.db;
-		var Users = db.Users;
-		getAccessToken(req, res, request_token, Users, next);
+		getAccessToken(req, res, request_token, req.db.Users, next);
 	} else {
 		res.redirect('/login');
 	}

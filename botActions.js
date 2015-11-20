@@ -236,13 +236,10 @@ function autoPrune(retryAfterMs) {
 function retweetFromSearch(retryAfterMs) {
     var fields = [
         'hashtags',
+        'botActions.search-terms.searchTypes',
         'botActions.search-terms.since_id',
         'botActions.search-terms.activated'
     ];
-    // TODO:
-    // Add checkboxes to search terms tab
-    // enabling the type of search.
-    var resultTypes = ['popular', 'mixed', 'recent'];
 
     bots.forEach(function(bot, i) {
         var config = bot.config;
@@ -258,6 +255,10 @@ function retweetFromSearch(retryAfterMs) {
             } else {
                 var config = userSecrets.botActions['search-terms'].toJSON();
                 var hashtags = userSecrets.hashtags;
+                var searchTypes = config.searchTypes.length > 0 ?
+                    config.searchTypes :
+                    ['popular']
+                ;
 
                 if(!config.activated || !hashtags.length) {
                    return console.log(
@@ -268,7 +269,7 @@ function retweetFromSearch(retryAfterMs) {
 
                 var searchOpts = {
                         count: 100,
-                        result_type: randIdx(resultTypes),
+                        result_type: randIdx(searchTypes),
                         since_id: config.since_id
                 };
                 var topics = hashtags.map(function(v) {

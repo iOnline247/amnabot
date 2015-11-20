@@ -25,6 +25,7 @@ module.exports.init = function(mongoose) {
 			},
 			"search-terms": {
 				activated: { type: Boolean, default: true },
+				searchTypes: { type: Array, default: ['popular', 'mixed', 'recent'] },
 				since_id: { type: String, default: '1' }
 			}
 		},
