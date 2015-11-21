@@ -4,6 +4,7 @@
   "description": "http://twitter.com/amnabot",
   "main": "index.js",
   "scripts": {
+    "test": "echo TODO!",
     "build": "npm install && npm shrinkwrap && nsp audit-shrinkwrap",
     "start": "node index.js"
   },
