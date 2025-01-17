@@ -29,7 +29,7 @@
     "extend": "^3.0.0",
     "helmet": "^0.13.0",
     "mongodb": "^2.0.39",
-    "mongoose": "^4.1.1",
+    "mongoose": "^8.9.5",
     "oauth": "^0.9.13",
     "request": "^2.60.0",
     "twit": "^2.1.0"
